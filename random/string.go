@@ -9,6 +9,7 @@ package random
 import (
 	"encoding/binary"
 	"hash/crc32"
+	"strings"
 	"unsafe"
 )
 
@@ -65,4 +66,22 @@ func Token(namespace string, randomLength int) string {
 	checksum := base62Encode(crc32.ChecksumIEEE(token[:len(token)-7]), 6)
 	copy(token[len(token)-6:], checksum)
 	return *(*string)(unsafe.Pointer(&token))
+}
+
+// GetTokenPrefix parses the given token generated with Token, validates the checksum and returns the prefix namespace.
+func GetTokenPrefix(token string) string {
+	parts := strings.Split(token, "_")
+	if len(parts) != 3 {
+		return ""
+	}
+	checksum := base62Encode(crc32.ChecksumIEEE([]byte(parts[0]+"_"+parts[1])), 6)
+	if string(checksum) != parts[2] {
+		return ""
+	}
+	return parts[0]
+}
+
+// IsToken checks if the given token is a valid token generated with Token with the given namespace..
+func IsToken(namespace, token string) bool {
+	return GetTokenPrefix(token) == namespace
 }
