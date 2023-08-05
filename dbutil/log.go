@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
-	"maunium.net/go/maulogger/v2"
 )
 
 type DatabaseLogger interface {
@@ -29,37 +28,6 @@ func (n noopLogger) DoUpgrade(_, _ int, _ string, _ bool) {}
 func (n noopLogger) Warn(msg string, args ...interface{}) {}
 
 func (n noopLogger) QueryTiming(_ context.Context, _, _ string, _ []interface{}, _ int, _ time.Duration, _ error) {
-}
-
-type mauLogger struct {
-	l maulogger.Logger
-}
-
-// Deprecated: Use zerolog instead
-func MauLogger(log maulogger.Logger) DatabaseLogger {
-	return &mauLogger{l: log}
-}
-
-func (m mauLogger) WarnUnsupportedVersion(current, compat, latest int) {
-	m.l.Warnfln("Unsupported database schema version: currently on v%d (compatible down to v%d), latest known: v%d - continuing anyway", current, compat, latest)
-}
-
-func (m mauLogger) PrepareUpgrade(current, compat, latest int) {
-	m.l.Infofln("Database currently on v%d (compat: v%d), latest known: v%d", current, compat, latest)
-}
-
-func (m mauLogger) DoUpgrade(from, to int, message string, _ bool) {
-	m.l.Infofln("Upgrading database from v%d to v%d: %s", from, to, message)
-}
-
-func (m mauLogger) QueryTiming(_ context.Context, method, query string, _ []interface{}, _ int, duration time.Duration, _ error) {
-	if duration > 1*time.Second {
-		m.l.Warnfln("%s(%s) took %.3f seconds", method, query, duration.Seconds())
-	}
-}
-
-func (m mauLogger) Warn(msg string, args ...interface{}) {
-	m.l.Warnfln(msg, args...)
 }
 
 type zeroLogger struct {
