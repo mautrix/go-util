@@ -15,7 +15,8 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"maunium.net/go/mautrix/util"
+	"go.mau.fi/util"
+	"go.mau.fi/util/random"
 )
 
 var (
@@ -36,7 +37,7 @@ func (db *Database) DoTxn(ctx context.Context, opts *sql.TxOptions, fn func(ctx 
 		zerolog.Ctx(ctx).Trace().Msg("Already in a transaction, not creating a new one")
 		return fn(ctx)
 	}
-	log := zerolog.Ctx(ctx).With().Str("db_txn_id", util.RandomString(12)).Logger()
+	log := zerolog.Ctx(ctx).With().Str("db_txn_id", random.String(12)).Logger()
 	start := time.Now()
 	defer func() {
 		dur := time.Since(start)
