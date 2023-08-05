@@ -16,7 +16,7 @@ import (
 
 	log "maunium.net/go/maulogger/v2"
 
-	"go.mau.fi/util"
+	"go.mau.fi/util/exmime"
 )
 
 var ffmpegDefaultParams = []string{"-hide_banner", "-loglevel", "warning"}
@@ -73,7 +73,7 @@ func ConvertBytes(ctx context.Context, data []byte, outputExtension string, inpu
 		return nil, err
 	}
 	defer os.RemoveAll(tempdir)
-	inputFileName := fmt.Sprintf("%s/input%s", tempdir, util.ExtensionFromMimetype(inputMime))
+	inputFileName := fmt.Sprintf("%s/input%s", tempdir, exmime.ExtensionFromMimetype(inputMime))
 
 	inputFile, err := os.OpenFile(inputFileName, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
 	if err != nil {

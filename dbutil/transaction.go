@@ -15,7 +15,7 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"go.mau.fi/util"
+	"go.mau.fi/util/exerrors"
 	"go.mau.fi/util/random"
 )
 
@@ -56,7 +56,7 @@ func (db *Database) DoTxn(ctx context.Context, opts *sql.TxOptions, fn func(ctx 
 	tx, err := db.BeginTx(ctx, opts)
 	if err != nil {
 		log.Trace().Err(err).Msg("Failed to begin transaction")
-		return util.NewDualError(ErrTxnBegin, err)
+		return exerrors.NewDualError(ErrTxnBegin, err)
 	}
 	log.Trace().Msg("Transaction started")
 	tx.noTotalLog = true
@@ -76,7 +76,7 @@ func (db *Database) DoTxn(ctx context.Context, opts *sql.TxOptions, fn func(ctx 
 	err = tx.Commit()
 	if err != nil {
 		log.Trace().Err(err).Msg("Commit failed")
-		return util.NewDualError(ErrTxnCommit, err)
+		return exerrors.NewDualError(ErrTxnCommit, err)
 	}
 	log.Trace().Msg("Commit successful")
 	return nil
