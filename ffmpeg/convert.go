@@ -14,9 +14,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	log "maunium.net/go/maulogger/v2"
+	"github.com/rs/zerolog"
 
 	"go.mau.fi/util/exmime"
+	"go.mau.fi/util/exzerolog"
 )
 
 var ffmpegDefaultParams = []string{"-hide_banner", "-loglevel", "warning"}
@@ -42,9 +43,10 @@ func ConvertPath(ctx context.Context, inputFile string, outputExtension string, 
 	args = append(args, outputFilename)
 
 	cmd := exec.CommandContext(ctx, "ffmpeg", args...)
-	vcLog := log.Sub("ffmpeg").Writer(log.LevelWarn)
-	cmd.Stdout = vcLog
-	cmd.Stderr = vcLog
+	ctxLog := zerolog.Ctx(ctx).With().Str("command", "ffmpeg").Logger()
+	logWriter := exzerolog.NewLogWriter(ctxLog).WithLevel(zerolog.WarnLevel)
+	cmd.Stdout = logWriter
+	cmd.Stderr = logWriter
 	err := cmd.Run()
 	if err != nil {
 		return "", fmt.Errorf("ffmpeg error: %+v", err)
