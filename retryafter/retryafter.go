@@ -14,6 +14,8 @@ import (
 	"time"
 )
 
+var now = time.Now
+
 // Parse parses the backoff time specified in the Retry-After header if present.
 // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After.
 //
@@ -26,7 +28,7 @@ func Parse(retryAfter string, fallback time.Duration) time.Duration {
 	if retryAfter == "" {
 		return fallback
 	} else if t, err := time.Parse(http.TimeFormat, retryAfter); err == nil {
-		return time.Until(t)
+		return t.Sub(now())
 	} else if seconds, err := strconv.Atoi(retryAfter); err == nil {
 		return time.Duration(seconds) * time.Second
 	}
