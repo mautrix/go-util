@@ -69,6 +69,53 @@ func TestDiff_Ints_Basic(t *testing.T) {
 	assert.Equal(t, []int{6, 7}, uniqueToB)
 }
 
+func TestSortedDiff_Ints_Edge(t *testing.T) {
+	testCases := []struct {
+		name         string
+		l1, l2, a, b []int
+	}{
+		{
+			"shorter left",
+			[]int{1, 2}, []int{1, 3, 4, 5},
+			[]int{2}, []int{3, 4, 5},
+		},
+		{
+			"shorter right",
+			[]int{1, 3, 4, 5}, []int{1, 2},
+			[]int{3, 4, 5}, []int{2},
+		},
+		{
+			"empty side",
+			[]int{}, []int{1, 2, 3},
+			[]int{}, []int{1, 2, 3},
+		},
+		{
+			"empty both",
+			[]int{}, []int{},
+			[]int{}, []int{},
+		},
+		{
+			"equal",
+			[]int{1, 2, 3}, []int{1, 2, 3},
+			[]int{}, []int{},
+		},
+		{
+			"jump",
+			[]int{1, 999, 1001}, []int{1, 2, 3, 4, 1000, 1001},
+			[]int{999}, []int{2, 3, 4, 1000},
+		},
+	}
+	for _, c := range testCases {
+		t.Run(c.name, func(t *testing.T) {
+			uniqueToA, uniqueToB := exslices.Diff(c.l1, c.l2)
+			sort.Ints(uniqueToA)
+			sort.Ints(uniqueToB)
+			assert.Equal(t, c.a, uniqueToA)
+			assert.Equal(t, c.b, uniqueToB)
+		})
+	}
+}
+
 func TestDiff_Strings_Basic(t *testing.T) {
 	l1 := []string{"a", "b", "c", "d", "e"}
 	l2 := []string{"c", "d", "e", "f", "g"}
