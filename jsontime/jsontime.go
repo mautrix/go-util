@@ -48,6 +48,39 @@ func (um *UnixMilli) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func UMicro(time time.Time) UnixMicro {
+	return UnixMicro{Time: time}
+}
+
+func UnixMicroNow() UnixMicro {
+	return UMicro(time.Now())
+}
+
+type UnixMicro struct {
+	time.Time
+}
+
+func (um UnixMicro) MarshalJSON() ([]byte, error) {
+	if um.IsZero() {
+		return []byte{'0'}, nil
+	}
+	return json.Marshal(um.UnixMicro())
+}
+
+func (um *UnixMicro) UnmarshalJSON(data []byte) error {
+	var val int64
+	err := json.Unmarshal(data, &val)
+	if err != nil {
+		return err
+	}
+	if val == 0 {
+		um.Time = time.Time{}
+	} else {
+		um.Time = time.UnixMicro(val)
+	}
+	return nil
+}
+
 func U(time time.Time) Unix {
 	return Unix{Time: time}
 }
