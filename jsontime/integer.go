@@ -15,7 +15,7 @@ func parseTime(data []byte, unixConv func(int64) time.Time, into *time.Time) err
 	var val int64
 	err := json.Unmarshal(data, &val)
 	if err != nil {
-		return nil
+		return err
 	}
 	if val == 0 {
 		*into = time.Time{}

@@ -16,7 +16,7 @@ func parseTimeString(data []byte, unixConv func(int64) time.Time, into *time.Tim
 	var strVal string
 	err := json.Unmarshal(data, &strVal)
 	if err != nil {
-		return nil
+		return err
 	}
 	val, err := strconv.ParseInt(strVal, 10, 64)
 	if err != nil {
@@ -89,7 +89,7 @@ func (u UnixString) MarshalJSON() ([]byte, error) {
 }
 
 func (u *UnixString) UnmarshalJSON(data []byte) error {
-	return parseTime(data, func(i int64) time.Time {
+	return parseTimeString(data, func(i int64) time.Time {
 		return time.Unix(i, 0)
 	}, &u.Time)
 }
