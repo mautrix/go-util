@@ -9,11 +9,6 @@ package exslices
 // SortedDiff returns the difference between two already-sorted slices, with the help of the given comparison function.
 // The output will be in the same order as the input, which means it'll be sorted.
 func SortedDiff[T any](a, b []T, compare func(a, b T) int) (uniqueToA, uniqueToB []T) {
-	swapped := false
-	if len(b) > len(a) {
-		a, b = b, a
-		swapped = true
-	}
 	uniqueToA = make([]T, 0, len(a))
 	uniqueToB = make([]T, 0, len(b))
 
@@ -37,9 +32,6 @@ func SortedDiff[T any](a, b []T, compare func(a, b T) int) (uniqueToA, uniqueToB
 			i++
 			j++
 		}
-	}
-	if swapped {
-		uniqueToA, uniqueToB = uniqueToB, uniqueToA
 	}
 	return
 }
