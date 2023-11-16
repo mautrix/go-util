@@ -1,3 +1,7 @@
+# v0.2.1 (2023-11-16)
+
+* *(dbutil)* Fixed read-only db close error not including actual error message.
+
 # v0.2.0 (2023-10-16)
 
 * *(jsontime)* Added helpers for unix microseconds and nanoseconds, as well as
