@@ -1,3 +1,9 @@
+# v0.3.0 (unreleased)
+
+* *(dbutil)* Added query helper to reduce boilerplate with executing database
+  queries and scanning results.
+* *(exsync)* Added generic `Set` utility that wraps a valueless map with a mutex.
+
 # v0.2.1 (2023-11-16)
 
 * *(dbutil)* Fixed read-only db close error not including actual error message.
