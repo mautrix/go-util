@@ -125,5 +125,5 @@ func (z zeroLogger) QueryTiming(ctx context.Context, method, query string, args 
 }
 
 func (z zeroLogger) Warn(msg string, args ...interface{}) {
-	z.l.Warn().Msgf(msg, args...)
+	z.l.Warn().Msgf(msg, args...) // zerolog-allow-msgf
 }
