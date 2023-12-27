@@ -9,6 +9,9 @@ package dbutil
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -19,10 +22,52 @@ type LoggingExecable struct {
 	db                 *Database
 }
 
+type pqError interface {
+	Get(k byte) string
+}
+
+type PQErrorWithLine struct {
+	Underlying error
+	Line       string
+}
+
+func (pqe *PQErrorWithLine) Error() string {
+	return pqe.Underlying.Error()
+}
+
+func (pqe *PQErrorWithLine) Unwrap() error {
+	return pqe.Underlying
+}
+
+func addErrorLine(query string, err error) error {
+	if err == nil {
+		return err
+	}
+	var pqe pqError
+	if !errors.As(err, &pqe) {
+		return err
+	}
+	pos, _ := strconv.Atoi(pqe.Get('P'))
+	pos--
+	if pos <= 0 {
+		return err
+	}
+	lines := strings.Split(query, "\n")
+	for _, line := range lines {
+		lineRunes := []rune(line)
+		if pos < len(lineRunes)+1 {
+			return &PQErrorWithLine{Underlying: err, Line: line}
+		}
+		pos -= len(lineRunes) + 1
+	}
+	return err
+}
+
 func (le *LoggingExecable) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	start := time.Now()
 	query = le.db.mutateQuery(query)
 	res, err := le.UnderlyingExecable.ExecContext(ctx, query, args...)
+	err = addErrorLine(query, err)
 	le.db.Log.QueryTiming(ctx, "Exec", query, args, -1, time.Since(start), err)
 	return res, err
 }
@@ -31,6 +76,7 @@ func (le *LoggingExecable) QueryContext(ctx context.Context, query string, args 
 	start := time.Now()
 	query = le.db.mutateQuery(query)
 	rows, err := le.UnderlyingExecable.QueryContext(ctx, query, args...)
+	err = addErrorLine(query, err)
 	le.db.Log.QueryTiming(ctx, "Query", query, args, -1, time.Since(start), err)
 	return &LoggingRows{
 		ctx:   ctx,
