@@ -21,24 +21,23 @@ type RowIter[T any] interface {
 }
 
 type rowIterImpl[T any] struct {
-	rows Rows
-
+	Rows
 	ConvertRow func(Rows) (T, error)
 }
 
 // NewRowIter creates a new RowIter from the given Rows and scanner function.
 func NewRowIter[T any](rows Rows, convertFn func(Rows) (T, error)) RowIter[T] {
-	return &rowIterImpl[T]{rows: rows, ConvertRow: convertFn}
+	return &rowIterImpl[T]{Rows: rows, ConvertRow: convertFn}
 }
 
 func (i *rowIterImpl[T]) Iter(fn func(T) (bool, error)) error {
-	if i == nil || i.rows == nil {
+	if i == nil || i.Rows == nil {
 		return nil
 	}
-	defer i.rows.Close()
+	defer i.Rows.Close()
 
-	for i.rows.Next() {
-		if item, err := i.ConvertRow(i.rows); err != nil {
+	for i.Rows.Next() {
+		if item, err := i.ConvertRow(i.Rows); err != nil {
 			return err
 		} else if cont, err := fn(item); err != nil {
 			return err
@@ -46,7 +45,7 @@ func (i *rowIterImpl[T]) Iter(fn func(T) (bool, error)) error {
 			break
 		}
 	}
-	return i.rows.Err()
+	return i.Rows.Err()
 }
 
 func (i *rowIterImpl[T]) AsList() (list []T, err error) {
