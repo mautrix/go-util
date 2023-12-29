@@ -63,7 +63,7 @@ func addErrorLine(query string, err error) error {
 	return err
 }
 
-func (le *LoggingExecable) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+func (le *LoggingExecable) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
 	start := time.Now()
 	query = le.db.mutateQuery(query)
 	res, err := le.UnderlyingExecable.ExecContext(ctx, query, args...)
@@ -72,7 +72,7 @@ func (le *LoggingExecable) ExecContext(ctx context.Context, query string, args .
 	return res, err
 }
 
-func (le *LoggingExecable) QueryContext(ctx context.Context, query string, args ...interface{}) (Rows, error) {
+func (le *LoggingExecable) QueryContext(ctx context.Context, query string, args ...any) (Rows, error) {
 	start := time.Now()
 	query = le.db.mutateQuery(query)
 	rows, err := le.UnderlyingExecable.QueryContext(ctx, query, args...)
@@ -88,7 +88,7 @@ func (le *LoggingExecable) QueryContext(ctx context.Context, query string, args 
 	}, err
 }
 
-func (le *LoggingExecable) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
+func (le *LoggingExecable) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
 	start := time.Now()
 	query = le.db.mutateQuery(query)
 	row := le.UnderlyingExecable.QueryRowContext(ctx, query, args...)
@@ -96,15 +96,15 @@ func (le *LoggingExecable) QueryRowContext(ctx context.Context, query string, ar
 	return row
 }
 
-func (le *LoggingExecable) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (le *LoggingExecable) Exec(query string, args ...any) (sql.Result, error) {
 	return le.ExecContext(context.Background(), query, args...)
 }
 
-func (le *LoggingExecable) Query(query string, args ...interface{}) (Rows, error) {
+func (le *LoggingExecable) Query(query string, args ...any) (Rows, error) {
 	return le.QueryContext(context.Background(), query, args...)
 }
 
-func (le *LoggingExecable) QueryRow(query string, args ...interface{}) *sql.Row {
+func (le *LoggingExecable) QueryRow(query string, args ...any) *sql.Row {
 	return le.QueryRowContext(context.Background(), query, args...)
 }
 
@@ -175,7 +175,7 @@ type LoggingRows struct {
 	ctx   context.Context
 	db    *Database
 	query string
-	args  []interface{}
+	args  []any
 	rs    Rows
 	start time.Time
 	nrows int
