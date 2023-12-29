@@ -44,7 +44,7 @@ func ValueOrErr[T any](val *T, err error) (*T, error) {
 }
 
 // StrPtr returns a pointer to the given string, or nil if the string is empty.
-func StrPtr[T ~string, T2 *T](val T) *string {
+func StrPtr[T ~string](val T) *string {
 	if val == "" {
 		return nil
 	}
