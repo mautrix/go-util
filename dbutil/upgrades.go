@@ -199,7 +199,7 @@ func (db *Database) Upgrade() error {
 		}
 		err = upgradeItem.fn(upgradeConn, db)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to run upgrade #%d: %w", version, err)
 		}
 		version = upgradeItem.upgradesTo
 		logVersion = version
