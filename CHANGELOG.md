@@ -3,6 +3,7 @@
 * *(dbutil)* Added query helper to reduce boilerplate with executing database
   queries and scanning results.
 * *(exsync)* Added generic `Set` utility that wraps a valueless map with a mutex.
+* *(exerrors)* Added `Must` helper to turn `(T, error)` returns into `T` or panic.
 
 # v0.2.1 (2023-11-16)
 
