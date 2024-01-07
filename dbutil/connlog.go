@@ -96,18 +96,6 @@ func (le *LoggingExecable) QueryRowContext(ctx context.Context, query string, ar
 	return row
 }
 
-func (le *LoggingExecable) Exec(query string, args ...any) (sql.Result, error) {
-	return le.ExecContext(context.Background(), query, args...)
-}
-
-func (le *LoggingExecable) Query(query string, args ...any) (Rows, error) {
-	return le.QueryContext(context.Background(), query, args...)
-}
-
-func (le *LoggingExecable) QueryRow(query string, args ...any) *sql.Row {
-	return le.QueryRowContext(context.Background(), query, args...)
-}
-
 // loggingDB is a wrapper for LoggingExecable that allows access to BeginTx.
 //
 // While LoggingExecable has a pointer to the database and could use BeginTx, it's not technically safe since
@@ -133,10 +121,6 @@ func (ld *loggingDB) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Logging
 		ctx:             ctx,
 		StartTime:       start,
 	}, nil
-}
-
-func (ld *loggingDB) Begin() (*LoggingTxn, error) {
-	return ld.BeginTx(context.Background(), nil)
 }
 
 type LoggingTxn struct {

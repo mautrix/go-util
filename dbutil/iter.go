@@ -22,12 +22,27 @@ type RowIter[T any] interface {
 
 type rowIterImpl[T any] struct {
 	Rows
-	ConvertRow func(Rows) (T, error)
+	ConvertRow func(Scannable) (T, error)
 }
 
 // NewRowIter creates a new RowIter from the given Rows and scanner function.
-func NewRowIter[T any](rows Rows, convertFn func(Rows) (T, error)) RowIter[T] {
+func NewRowIter[T any](rows Rows, convertFn func(Scannable) (T, error)) RowIter[T] {
 	return &rowIterImpl[T]{Rows: rows, ConvertRow: convertFn}
+}
+
+func ScanSingleColumn[T any](rows Scannable) (val T, err error) {
+	err = rows.Scan(&val)
+	return
+}
+
+type NewableDataStruct[T any] interface {
+	DataStruct[T]
+	New() T
+}
+
+func ScanDataStruct[T NewableDataStruct[T]](rows Scannable) (T, error) {
+	var val T
+	return val.New().Scan(rows)
 }
 
 func (i *rowIterImpl[T]) Iter(fn func(T) (bool, error)) error {

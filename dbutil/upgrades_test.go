@@ -7,6 +7,7 @@
 package dbutil
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"strings"
@@ -72,8 +73,8 @@ func testUpgrade(dialect Dialect) func(t *testing.T) {
 
 			IgnoreForeignTables: true,
 		}
-		db.loggingDB.UnderlyingExecable = conn
-		db.loggingDB.db = db
+		db.LoggingDB.UnderlyingExecable = conn
+		db.LoggingDB.db = db
 
 		expectVersionCheck(db.Dialect, mock, 0, 0)
 		mock.ExpectBegin()
@@ -89,7 +90,7 @@ func testUpgrade(dialect Dialect) func(t *testing.T) {
 			WillReturnResult(sqlmock.NewResult(0, 0))
 		expectVersionBump(db.Dialect, mock, 5, 3)
 		mock.ExpectCommit()
-		err = db.Upgrade()
+		err = db.Upgrade(context.TODO())
 		require.NoError(t, err)
 		require.NoError(t, mock.ExpectationsWereMet())
 	}
@@ -109,21 +110,21 @@ func testCompatCheck(dialect Dialect) func(t *testing.T) {
 
 			IgnoreForeignTables: true,
 		}
-		db.loggingDB.UnderlyingExecable = conn
-		db.loggingDB.db = db
+		db.LoggingDB.UnderlyingExecable = conn
+		db.LoggingDB.db = db
 
 		expectVersionCheck(db.Dialect, mock, 10, 5)
-		err = db.Upgrade()
+		err = db.Upgrade(context.TODO())
 		require.NoError(t, err)
 		require.NoError(t, mock.ExpectationsWereMet())
 
 		expectVersionCheck(db.Dialect, mock, 10, 6)
-		err = db.Upgrade()
+		err = db.Upgrade(context.TODO())
 		require.ErrorIs(t, err, ErrUnsupportedDatabaseVersion)
 		require.NoError(t, mock.ExpectationsWereMet())
 
 		expectVersionCheck(db.Dialect, mock, 5, 3)
-		err = db.Upgrade()
+		err = db.Upgrade(context.TODO())
 		require.NoError(t, err)
 		require.NoError(t, mock.ExpectationsWereMet())
 	}

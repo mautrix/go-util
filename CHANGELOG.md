@@ -1,5 +1,6 @@
 # v0.3.0 (unreleased)
 
+* **Breaking change *(dbutil)*** Removed all non-context methods.
 * *(dbutil)* Added query helper to reduce boilerplate with executing database
   queries and scanning results.
 * *(exsync)* Added generic `Set` utility that wraps a valueless map with a mutex.
