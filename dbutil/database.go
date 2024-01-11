@@ -245,7 +245,7 @@ func NewFromConfig(owner string, cfg Config, logger DatabaseLogger) (*Database, 
 		if roUri == "" {
 			uriParts := strings.Split(cfg.URI, "?")
 
-			var qs url.Values
+			qs := url.Values{}
 			if len(uriParts) == 2 {
 				var err error
 				qs, err = url.ParseQuery(uriParts[1])
