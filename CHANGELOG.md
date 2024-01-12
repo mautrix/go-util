@@ -5,6 +5,8 @@
   queries and scanning results.
 * *(exsync)* Added generic `Set` utility that wraps a valueless map with a mutex.
 * *(exerrors)* Added `Must` helper to turn `(T, error)` returns into `T` or panic.
+* *(ffmpeg)* Added `Supported` and `SetPath` for checking if ffmpeg is available
+  and overriding the binary path respectively.
 
 # v0.2.1 (2023-11-16)
 

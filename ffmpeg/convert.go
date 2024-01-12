@@ -22,6 +22,25 @@ import (
 
 var ffmpegDefaultParams = []string{"-hide_banner", "-loglevel", "warning"}
 
+var ffmpegPath string
+
+func init() {
+	ffmpegPath, _ = exec.LookPath("ffmpeg")
+}
+
+// Supported returns whether ffmpeg is available on the system.
+//
+// ffmpeg is considered to be available if a binary called ffmpeg is found in $PATH,
+// or if [SetPath] has been called explicitly with a non-empty path.
+func Supported() bool {
+	return ffmpegPath != ""
+}
+
+// SetPath overrides the path to the ffmpeg binary.
+func SetPath(path string) {
+	ffmpegPath = path
+}
+
 // ConvertPath converts a media file on the disk using ffmpeg.
 //
 // Args:
@@ -42,7 +61,7 @@ func ConvertPath(ctx context.Context, inputFile string, outputExtension string, 
 	args = append(args, outputArgs...)
 	args = append(args, outputFilename)
 
-	cmd := exec.CommandContext(ctx, "ffmpeg", args...)
+	cmd := exec.CommandContext(ctx, ffmpegPath, args...)
 	ctxLog := zerolog.Ctx(ctx).With().Str("command", "ffmpeg").Logger()
 	logWriter := exzerolog.NewLogWriter(ctxLog).WithLevel(zerolog.WarnLevel)
 	cmd.Stdout = logWriter
