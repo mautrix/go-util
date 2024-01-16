@@ -1,4 +1,4 @@
-# v0.3.0 (unreleased)
+# v0.3.0 (2024-01-16)
 
 * **Breaking change *(dbutil)*** Removed all non-context methods.
 * *(dbutil)* Added query helper to reduce boilerplate with executing database
