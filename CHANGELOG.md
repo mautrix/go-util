@@ -1,3 +1,16 @@
+# v0.4.0 (2024-02-16)
+
+* *(jsonbytes)* Added utilities for en/decoding byte slices as unpadded base64.
+* *(jsontime)* Fixed serialization of Unix(Micro|Nano)String types.
+* *(exzerolog)* Added helper function for setting sensible zerolog globals
+  such as CallerMarshalFunc, default loggers and better level colors.
+* *(dbutil)* Added helper for wrapping a raw slice in a RowIter.
+  * This is useful for interfaces that return RowIters to allow implementing
+    the interface without SQL.
+  * The RowIter interface may be moved to a separate package in the future to
+    further separate it from SQL databases.
+* *(dbutil)* Added helper for converting RowIter to map.
+
 # v0.3.0 (2024-01-16)
 
 * **Breaking change *(dbutil)*** Removed all non-context methods.
