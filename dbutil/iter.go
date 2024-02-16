@@ -24,20 +24,38 @@ type RowIter[T any] interface {
 	AsList() ([]T, error)
 }
 
+type ConvertRowFn[T any] func(Scannable) (T, error)
+
+// NewRowIter is a proxy for NewRowIterWithError for more convenient usage.
+//
+// For example:
+//
+//	func exampleConvertRowFn(rows Scannable) (*YourType, error) {
+//		...
+//	}
+//	func exampleFunction() {
+//		iter := dbutil.ConvertRowFn[*YourType](exampleConvertRowFn).NewRowIter(
+//			db.Query("SELECT ..."),
+//		)
+//	}
+func (crf ConvertRowFn[T]) NewRowIter(rows Rows, err error) RowIter[T] {
+	return NewRowIterWithError(rows, crf, err)
+}
+
 type rowIterImpl[T any] struct {
 	Rows
-	ConvertRow func(Scannable) (T, error)
+	ConvertRow ConvertRowFn[T]
 
 	err error
 }
 
 // NewRowIter creates a new RowIter from the given Rows and scanner function.
-func NewRowIter[T any](rows Rows, convertFn func(Scannable) (T, error)) RowIter[T] {
+func NewRowIter[T any](rows Rows, convertFn ConvertRowFn[T]) RowIter[T] {
 	return &rowIterImpl[T]{Rows: rows, ConvertRow: convertFn}
 }
 
 // NewRowIterWithError creates a new RowIter from the given Rows and scanner function with default error. If not nil, it will be returned without calling iterator function.
-func NewRowIterWithError[T any](rows Rows, convertFn func(Scannable) (T, error), err error) RowIter[T] {
+func NewRowIterWithError[T any](rows Rows, convertFn ConvertRowFn[T], err error) RowIter[T] {
 	return &rowIterImpl[T]{Rows: rows, ConvertRow: convertFn, err: err}
 }
 
@@ -91,6 +109,16 @@ func (i *rowIterImpl[T]) AsList() (list []T, err error) {
 		return true, nil
 	})
 	return
+}
+
+func RowIterAsMap[T any, Key comparable, Value any](ri RowIter[T], getKeyValue func(T) (Key, Value)) (map[Key]Value, error) {
+	m := make(map[Key]Value)
+	err := ri.Iter(func(item T) (bool, error) {
+		k, v := getKeyValue(item)
+		m[k] = v
+		return true, nil
+	})
+	return m, err
 }
 
 type sliceIterImpl[T any] struct {
