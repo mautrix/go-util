@@ -28,6 +28,7 @@ var MimeExtensionSanityOverrides = map[string]string{
 	"audio/ogg":   ".ogg",
 	"audio/webm":  ".webm",
 	"audio/x-caf": ".caf",
+	"audio/mp4":   ".m4a",
 	"video/mp4":   ".mp4",
 	"video/mpeg":  ".mpeg",
 	"video/webm":  ".webm",
