@@ -12,10 +12,13 @@ import (
 	"strings"
 )
 
+// Array is an interface for small fixed-size arrays.
+// It exists because generics can't specify array sizes: https://github.com/golang/go/issues/44253
 type Array interface {
 	[1]any | [2]any | [3]any | [4]any | [5]any | [6]any | [7]any | [8]any | [9]any | [10]any | [11]any | [12]any | [13]any | [14]any | [15]any | [16]any | [17]any | [18]any | [19]any | [20]any
 }
 
+// MassInsertable represents a struct that contains dynamic values for a mass insert query.
 type MassInsertable[T Array] interface {
 	GetMassInsertValues() T
 }
@@ -25,6 +28,48 @@ type MassInsertBuilder[Item MassInsertable[DynamicParams], StaticParams Array, D
 	placeholderTemplate string
 }
 
+// NewMassInsertBuilder creates a new MassInsertBuilder that can build mass insert database queries.
+//
+// Parameters in mass insert queries are split into two types: static parameters
+// and dynamic parameters. Static parameters are the same for all items being
+// inserted, while dynamic parameters are different for each item.
+//
+// The given query should be a normal INSERT query for a single row. It can also
+// have ON CONFLICT clauses, as long as the clause uses `excluded` instead of
+// positional parameters.
+//
+// The placeholder template is used to replace the `VALUES` part of the given
+// query. It should contain a positional placeholder ($1, $2, ...) for each
+// static placeholder, and a fmt directive (`$%d`) for each dynamic placeholder.
+//
+// The given query and placeholder template are validated here and the function
+// will panic if they're invalid (e.g. if the `VALUES` part of the insert query
+// can't be found, or if the placeholder template doesn't have the right things).
+// The idea is to use this function to populate a global variable with the mass
+// insert builder, so the panic will happen at startup if the query or
+// placeholder template are invalid (instead of returning an error when trying
+// to use the query later).
+//
+// Example:
+//
+//	type Message struct {
+//		ChatID    int
+//		RemoteID  string
+//		MXID      id.EventID
+//		Timestamp time.Time
+//	}
+//
+//	func (msg *Message) GetMassInsertValues() [3]any {
+//		return [3]any{msg.RemoteID, msg.MXID, msg.Timestamp.UnixMilli()}
+//	}
+//
+//	const insertMessageQuery = `INSERT INTO message (chat_id, remote_id, mxid, timestamp) VALUES ($1, $2, $3, $4)`
+//	var massInsertMessageBuilder = dbutil.NewMassInsertBuilder[Message, [2]any](insertMessageQuery, "($1, $%d, $%d, $%d, $%d)")
+//
+//	func DoMassInsert(ctx context.Context, messages []*Message) error {
+//		query, params := massInsertMessageBuilder.Build([1]any{messages[0].ChatID}, messages)
+//		return db.Exec(ctx, query, params...)
+//	}
 func NewMassInsertBuilder[Item MassInsertable[DynamicParams], StaticParams Array, DynamicParams Array](
 	singleInsertQuery, placeholderTemplate string,
 ) *MassInsertBuilder[Item, StaticParams, DynamicParams] {
