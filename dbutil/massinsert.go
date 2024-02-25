@@ -23,6 +23,7 @@ type MassInsertable[T Array] interface {
 	GetMassInsertValues() T
 }
 
+// MassInsertBuilder contains pre-validated templates for building mass insert SQL queries.
 type MassInsertBuilder[Item MassInsertable[DynamicParams], StaticParams Array, DynamicParams Array] struct {
 	queryTemplate       string
 	placeholderTemplate string
@@ -114,6 +115,31 @@ func NewMassInsertBuilder[Item MassInsertable[DynamicParams], StaticParams Array
 	}
 }
 
+// Build constructs a ready-to-use mass insert SQL query using the prepared templates in this builder.
+//
+// This method always only produces one query. If there are lots of items,
+// chunking them beforehand may be required to avoid query parameter limits.
+// For example, SQLite (3.32+) has a limit of 32766 parameters by default,
+// while Postgres allows up to 65535. To find out if there are too many items,
+// divide the maximum number of parameters by the number of dynamic columns in
+// your data and subtract the number of static columns.
+//
+// Example of chunking input data:
+//
+//	var mib dbutil.MassInsertBuilder
+//	var db *dbutil.Database
+//	func MassInsert(ctx context.Context, ..., data []T) error {
+//		return db.DoTxn(ctx, nil, func(ctx context.Context) error {
+//			for _, chunk := range exslices.Chunk(data, 100) {
+//				query, params := mib.Build(staticParams)
+//				_, err := db.Exec(ctx, query, params...)
+//				if err != nil {
+//					return err
+//				}
+//			}
+//			return nil
+//		}
+//	}
 func (mib *MassInsertBuilder[Item, StaticParams, DynamicParams]) Build(static StaticParams, data []Item) (query string, params []any) {
 	var itemValues DynamicParams
 	params = make([]any, len(static)+len(itemValues)*len(data))
