@@ -93,6 +93,16 @@ func Do(configPath string, save bool, upgrader BaseUpgrader, additional ...Upgra
 		if err != nil {
 			return output, true, fmt.Errorf("failed to create temp file for writing config: %w", err)
 		}
+		var fi, err = os.Stat(configPath)
+		if err != nil {
+			_ = os.Remove(tempFile.Name())
+			return output, true, fmt.Errorf("failed to get config permissions: %w", err)
+		}
+		err = tempFile.Chmod(fi.Mode())
+		if err != nil {
+			_ = os.Remove(tempFile.Name())
+			return output, true, fmt.Errorf("failed to set permissions to temp file: %w", err)
+		}
 		_, err = tempFile.Write(output)
 		if err != nil {
 			_ = os.Remove(tempFile.Name())
