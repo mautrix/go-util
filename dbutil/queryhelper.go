@@ -10,6 +10,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"golang.org/x/exp/constraints"
 )
@@ -60,6 +61,34 @@ func NumPtr[T constraints.Integer | constraints.Float](val T) *T {
 	return &val
 }
 
+// UnixPtr returns a pointer to the given time as unix seconds, or nil if the time is zero.
+func UnixPtr(val time.Time) *int64 {
+	return ConvertedPtr(val, time.Time.Unix)
+}
+
+// UnixMilliPtr returns a pointer to the given time as unix milliseconds, or nil if the time is zero.
+func UnixMilliPtr(val time.Time) *int64 {
+	return ConvertedPtr(val, time.Time.UnixMilli)
+}
+
+type Zeroable interface {
+	IsZero() bool
+}
+
+// ConvertedPtr returns a pointer to the converted version of the given value, or nil if the input is zero.
+//
+// This is primarily meant for time.Time, but it can be used with any type that has implements `IsZero() bool`.
+//
+//	yourTime := time.Now()
+//	unixMSPtr := dbutil.TimePtr(yourTime, time.Time.UnixMilli)
+func ConvertedPtr[Input Zeroable, Output any](val Input, converter func(Input) Output) *Output {
+	if val.IsZero() {
+		return nil
+	}
+	converted := converter(val)
+	return &converted
+}
+
 func (qh *QueryHelper[T]) GetDB() *Database {
 	return qh.db
 }
@@ -71,18 +100,22 @@ func (qh *QueryHelper[T]) New() T {
 // Exec executes a query with ExecContext and returns the error.
 //
 // It omits the sql.Result return value, as it is rarely used. When the result
-// is wanted, use `qh.GetDB().Conn(ctx).ExecContext(...)` instead, which is
+// is wanted, use `qh.GetDB().Exec(...)` instead, which is
 // otherwise equivalent.
 func (qh *QueryHelper[T]) Exec(ctx context.Context, query string, args ...any) error {
-	_, err := qh.db.Conn(ctx).ExecContext(ctx, query, args...)
+	_, err := qh.db.Exec(ctx, query, args...)
 	return err
+}
+
+func (qh *QueryHelper[T]) scanNew(row Scannable) (T, error) {
+	return qh.New().Scan(row)
 }
 
 // QueryOne executes a query with QueryRowContext, uses the associated DataStruct
 // to scan it, and returns the value. If the query returns no rows, it returns nil
 // and no error.
 func (qh *QueryHelper[T]) QueryOne(ctx context.Context, query string, args ...any) (val T, err error) {
-	val, err = qh.New().Scan(qh.db.Conn(ctx).QueryRowContext(ctx, query, args...))
+	val, err = qh.scanNew(qh.db.QueryRow(ctx, query, args...))
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}
@@ -93,21 +126,9 @@ func (qh *QueryHelper[T]) QueryOne(ctx context.Context, query string, args ...an
 // to scan each row, and returns the values. If the query returns no rows, it
 // returns a non-nil zero-length slice and no error.
 func (qh *QueryHelper[T]) QueryMany(ctx context.Context, query string, args ...any) ([]T, error) {
-	rows, err := qh.db.Conn(ctx).QueryContext(ctx, query, args...)
+	rows, err := qh.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		_ = rows.Close()
-	}()
-	items := make([]T, 0)
-	var item T
-	for rows.Next() {
-		item, err = qh.New().Scan(rows)
-		if err != nil {
-			return nil, err
-		}
-		items = append(items, item)
-	}
-	return items, rows.Err()
+	return NewRowIter(rows, qh.scanNew).AsList()
 }
