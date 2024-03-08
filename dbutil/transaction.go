@@ -11,6 +11,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -53,19 +54,41 @@ func (db *Database) DoTxn(ctx context.Context, opts *sql.TxOptions, fn func(ctx 
 		zerolog.Ctx(ctx).Trace().Msg("Already in a transaction, not creating a new one")
 		return fn(ctx)
 	}
+
 	log := zerolog.Ctx(ctx).With().Str("db_txn_id", random.String(12)).Logger()
+	slowLog := log
+
+	callerSkip := 1
+	if val := ctx.Value(ContextKeyDoTxnCallerSkip); val != nil {
+		callerSkip += val.(int)
+	}
+	if pc, file, line, ok := runtime.Caller(callerSkip); ok {
+		slowLog = log.With().Str(zerolog.CallerFieldName, zerolog.CallerMarshalFunc(pc, file, line)).Logger()
+	}
+
 	start := time.Now()
+	deadlockCh := make(chan struct{})
+	go func() {
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				slowLog.Warn().
+					Dur("duration_seconds", time.Since(start)).
+					Msg("Transaction still running")
+			case <-deadlockCh:
+				return
+			}
+		}
+	}()
 	defer func() {
+		close(deadlockCh)
 		dur := time.Since(start)
 		if dur > time.Second {
-			val := ctx.Value(ContextKeyDoTxnCallerSkip)
-			callerSkip := 2
-			if val != nil {
-				callerSkip += val.(int)
-			}
-			log.Warn().
+			slowLog.Warn().
 				Float64("duration_seconds", dur.Seconds()).
-				Caller(callerSkip).
 				Msg("Transaction took long")
 		}
 	}()
