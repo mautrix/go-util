@@ -46,10 +46,16 @@ func (db *Database) QueryRow(ctx context.Context, query string, args ...any) *sq
 }
 
 func (db *Database) BeginTx(ctx context.Context, opts *sql.TxOptions) (*LoggingTxn, error) {
+	if ctx == nil {
+		panic("BeginTx() called with nil ctx")
+	}
 	return db.LoggingDB.BeginTx(ctx, opts)
 }
 
 func (db *Database) DoTxn(ctx context.Context, opts *sql.TxOptions, fn func(ctx context.Context) error) error {
+	if ctx == nil {
+		panic("DoTxn() called with nil ctx")
+	}
 	if ctx.Value(ContextKeyDatabaseTransaction) != nil {
 		zerolog.Ctx(ctx).Trace().Msg("Already in a transaction, not creating a new one")
 		return fn(ctx)
@@ -123,7 +129,7 @@ func (db *Database) DoTxn(ctx context.Context, opts *sql.TxOptions, fn func(ctx 
 
 func (db *Database) Conn(ctx context.Context) Execable {
 	if ctx == nil {
-		return &db.LoggingDB
+		panic("Conn() called with nil ctx")
 	}
 	txn, ok := ctx.Value(ContextKeyDatabaseTransaction).(Transaction)
 	if ok {
