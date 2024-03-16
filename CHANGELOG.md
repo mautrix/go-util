@@ -1,3 +1,15 @@
+# v0.4.1 (2024-03-16)
+
+* *(exfmt)* Added utility for converting HTTP requests to `curl` commands.
+* *(exmime)* Added hardcoded extension override for `audio/mp4` -> `.m4a`.
+* *(dbutil)* Added `UnixPtr`, `UnixMilliPtr` and `ConvertedPtr` helpers for
+  converting `time.Time` into `*int64` so that zero times are nil and other
+  times are unix.
+* *(dbutil)* Added `UntypedNil` utility for avoiding typed nils, and `JSONPtr`
+  for wrapping a struct in the existing `JSON` utility using `UntypedNil`.
+* *(dbutil)* Added periodic logs to `DoTxn` if the transaction takes more than
+  5 seconds.
+
 # v0.4.0 (2024-02-16)
 
 * *(jsonbytes)* Added utilities for en/decoding byte slices as unpadded base64.
