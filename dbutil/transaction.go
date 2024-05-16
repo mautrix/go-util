@@ -82,7 +82,7 @@ func (db *Database) DoTxn(ctx context.Context, opts *sql.TxOptions, fn func(ctx 
 			select {
 			case <-ticker.C:
 				slowLog.Warn().
-					Dur("duration_seconds", time.Since(start)).
+					Float64("duration_seconds", time.Since(start).Seconds()).
 					Msg("Transaction still running")
 			case <-deadlockCh:
 				return
