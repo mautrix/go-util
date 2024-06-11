@@ -15,7 +15,7 @@ import (
 )
 
 type Upgrader interface {
-	DoUpgrade(helper *Helper)
+	DoUpgrade(helper Helper)
 }
 
 type SpacedUpgrader interface {
@@ -42,18 +42,64 @@ func (su *StructUpgrader) GetBase() string {
 	return su.Base
 }
 
-type SimpleUpgrader func(helper *Helper)
+type ProxyUpgrader struct {
+	Prefix []string
+	Target Upgrader
+}
 
-func (su SimpleUpgrader) DoUpgrade(helper *Helper) {
+var _ SpacedUpgrader = (*ProxyUpgrader)(nil)
+
+func (p *ProxyUpgrader) DoUpgrade(helper Helper) {
+	p.Target.DoUpgrade(&ProxyHelper{
+		Target: helper,
+		Prefix: p.Prefix,
+	})
+}
+
+func (p *ProxyUpgrader) SpacedBlocks() [][]string {
+	spaced, ok := p.Target.(SpacedUpgrader)
+	if ok {
+		blocks := spaced.SpacedBlocks()
+		newBlocks := make([][]string, len(blocks))
+		for i, block := range blocks {
+			newBlocks[i] = append(p.Prefix, block...)
+		}
+		return newBlocks
+	}
+	return nil
+}
+
+func MergeUpgraders(base string, upgraders ...Upgrader) *StructUpgrader {
+	var blocks [][]string
+	for _, upgrader := range upgraders {
+		spaced, ok := upgrader.(SpacedUpgrader)
+		if ok {
+			blocks = append(blocks, spaced.SpacedBlocks()...)
+		}
+	}
+	return &StructUpgrader{
+		SimpleUpgrader: func(helper Helper) {
+			for _, upgrader := range upgraders {
+				upgrader.DoUpgrade(helper)
+			}
+		},
+		Blocks: blocks,
+		Base:   base,
+	}
+}
+
+type SimpleUpgrader func(helper Helper)
+
+func (su SimpleUpgrader) DoUpgrade(helper Helper) {
 	su(helper)
 }
 
-func (helper *Helper) apply(upgrader Upgrader) {
+func (helper *CopyHelper) apply(upgrader Upgrader) {
 	upgrader.DoUpgrade(helper)
 	helper.addSpaces(upgrader)
 }
 
-func (helper *Helper) addSpaces(upgrader Upgrader) {
+func (helper *CopyHelper) addSpaces(upgrader Upgrader) {
 	spaced, ok := upgrader.(SpacedUpgrader)
 	if ok {
 		for _, spacePath := range spaced.SpacedBlocks() {
