@@ -1,3 +1,8 @@
+# v0.4.2 (2024-04-16)
+
+* *(dbutil)* Added utility for building mass insert queries.
+* *(dbutil)* Added utility for using reflect to build a RowIter.
+
 # v0.4.1 (2024-03-16)
 
 * *(exfmt)* Added utility for converting HTTP requests to `curl` commands.

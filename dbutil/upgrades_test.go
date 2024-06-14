@@ -70,6 +70,7 @@ func testUpgrade(dialect Dialect) func(t *testing.T) {
 			VersionTable: "version",
 			Dialect:      dialect,
 			UpgradeTable: makeTable(),
+			txnCtxKey:    contextKey(nextContextKeyDatabaseTransaction.Add(1)),
 
 			IgnoreForeignTables: true,
 		}
@@ -107,6 +108,7 @@ func testCompatCheck(dialect Dialect) func(t *testing.T) {
 			VersionTable: "version",
 			Dialect:      dialect,
 			UpgradeTable: makeTable(),
+			txnCtxKey:    contextKey(nextContextKeyDatabaseTransaction.Add(1)),
 
 			IgnoreForeignTables: true,
 		}

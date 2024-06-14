@@ -188,19 +188,32 @@ func StringNode(val string) YAMLNode {
 	return YAMLNode{Node: makeStringNode(val)}
 }
 
-type Helper struct {
+type Helper interface {
+	Copy(allowedTypes YAMLType, path ...string)
+	Get(tag YAMLType, path ...string) (string, bool)
+	GetNode(path ...string) *YAMLNode
+	GetBase(path ...string) string
+	GetBaseNode(path ...string) *YAMLNode
+	Set(tag YAMLType, value string, path ...string)
+	SetMap(value YAMLMap, path ...string)
+	AddSpaceBeforeComment(path ...string)
+}
+
+type CopyHelper struct {
 	Base   YAMLNode
 	Config YAMLNode
 }
 
-func NewHelper(base, cfg *yaml.Node) *Helper {
-	return &Helper{
+var _ Helper = (*CopyHelper)(nil)
+
+func NewHelper(base, cfg *yaml.Node) *CopyHelper {
+	return &CopyHelper{
 		Base:   fromNode(base, nil),
 		Config: fromNode(cfg, nil),
 	}
 }
 
-func (helper *Helper) AddSpaceBeforeComment(path ...string) {
+func (helper *CopyHelper) AddSpaceBeforeComment(path ...string) {
 	node := helper.GetBaseNode(path...)
 	if node == nil || node.Key == nil {
 		panic(fmt.Errorf("didn't find key at %+v", path))
@@ -208,7 +221,7 @@ func (helper *Helper) AddSpaceBeforeComment(path ...string) {
 	node.Key.HeadComment = "\n" + node.Key.HeadComment
 }
 
-func (helper *Helper) Copy(allowedTypes YAMLType, path ...string) {
+func (helper *CopyHelper) Copy(allowedTypes YAMLType, path ...string) {
 	base, cfg := helper.Base, helper.Config
 	var ok bool
 	for _, item := range path {
@@ -247,15 +260,15 @@ func getNode(cfg YAMLNode, path []string) *YAMLNode {
 	return &cfg
 }
 
-func (helper *Helper) GetNode(path ...string) *YAMLNode {
+func (helper *CopyHelper) GetNode(path ...string) *YAMLNode {
 	return getNode(helper.Config, path)
 }
 
-func (helper *Helper) GetBaseNode(path ...string) *YAMLNode {
+func (helper *CopyHelper) GetBaseNode(path ...string) *YAMLNode {
 	return getNode(helper.Base, path)
 }
 
-func (helper *Helper) Get(tag YAMLType, path ...string) (string, bool) {
+func (helper *CopyHelper) Get(tag YAMLType, path ...string) (string, bool) {
 	node := helper.GetNode(path...)
 	if node == nil || node.Kind != yaml.ScalarNode || tag&tagToType(node.Tag) == 0 {
 		return "", false
@@ -263,11 +276,11 @@ func (helper *Helper) Get(tag YAMLType, path ...string) (string, bool) {
 	return node.Value, true
 }
 
-func (helper *Helper) GetBase(path ...string) string {
+func (helper *CopyHelper) GetBase(path ...string) string {
 	return helper.GetBaseNode(path...).Value
 }
 
-func (helper *Helper) Set(tag YAMLType, value string, path ...string) {
+func (helper *CopyHelper) Set(tag YAMLType, value string, path ...string) {
 	base := helper.Base
 	for _, item := range path {
 		base = base.Map[item]
@@ -276,7 +289,7 @@ func (helper *Helper) Set(tag YAMLType, value string, path ...string) {
 	base.Value = value
 }
 
-func (helper *Helper) SetMap(value YAMLMap, path ...string) {
+func (helper *CopyHelper) SetMap(value YAMLMap, path ...string) {
 	base := helper.Base
 	for _, item := range path {
 		base = base.Map[item]
