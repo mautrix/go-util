@@ -1,3 +1,18 @@
+# v0.5.0 (2024-06-16)
+
+* **Breaking change *(configupgrade)*** Changed `Helper` into an interface.
+* *(configupgrade)* Added `ProxyHelper` that prepends a given path to all calls
+  to a target `Helper`.
+* *(dbutil)* Added support for notating line filters as `(line commented)` to
+  indicate that they should be uncommented when the filter matches.
+* *(dbutil)* Prevented accidentally using the transaction of another database
+  connection by mixing contexts.
+* *(fallocate)* Added utility for allocating file space on disk.
+  Currently compatible with Linux (including Android) and macOS.
+* *(requestlog)* Added utility for HTTP access logging.
+* *(progress)* Added `io.Reader` and `io.Writer` wrappers that support
+  monitoring progress of the reading/writing.
+
 # v0.4.2 (2024-04-16)
 
 * *(dbutil)* Added utility for building mass insert queries.
