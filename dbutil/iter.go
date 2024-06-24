@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/rs/zerolog"
+	"go.mau.fi/util/exzerolog"
 )
 
 var ErrAlreadyIterated = errors.New("this iterator has been already iterated")
@@ -72,7 +72,7 @@ func newRowIterWithError[T any](rows Rows, convertFn ConvertRowFn[T], err error)
 	if err == nil {
 		callerSkip := 2
 		if pc, file, line, ok := runtime.Caller(callerSkip); ok {
-			ri.caller = zerolog.CallerMarshalFunc(pc, file, line)
+			ri.caller = exzerolog.CallerWithFunctionName(pc, file, line)
 		}
 		runtime.SetFinalizer(ri, ri.destroy)
 	}
