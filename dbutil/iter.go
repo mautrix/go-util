@@ -74,7 +74,7 @@ func newRowIterWithError[T any](rows Rows, convertFn ConvertRowFn[T], err error)
 		if pc, file, line, ok := runtime.Caller(callerSkip); ok {
 			ri.caller = exzerolog.CallerWithFunctionName(pc, file, line)
 		}
-		runtime.SetFinalizer(ri, ri.destroy)
+		runtime.SetFinalizer(ri, (*rowIterImpl[T]).destroy)
 	}
 	return ri
 }
