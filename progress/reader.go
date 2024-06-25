@@ -1,10 +1,15 @@
 package progress
 
-import "io"
+import (
+	"fmt"
+	"io"
+)
 
-// Reader is an [io.ReadCloser] that reports the number of bytes read from it
-// via a callback. The callback is called at most every "updateInterval" bytes.
+// Reader is an [io.ReadSeekCloser] that reports the number of bytes read from it via a callback.
+//
+// The callback is called at most every "updateInterval" bytes.
 // The updateInterval can be set using the [Reader.WithUpdateInterval] method.
+// The callback will also be called whenever [Reader.Seek] is called.
 //
 // The following is an example of how to use [Reader] to report the progress of
 // reading from a file:
@@ -51,4 +56,19 @@ func (r *Reader) Close() error {
 	return nil
 }
 
-var _ io.ReadCloser = (*Reader)(nil)
+func (r *Reader) Seek(offset int64, whence int) (int64, error) {
+	seeker, ok := r.inner.(io.ReadSeeker)
+	if !ok {
+		return 0, fmt.Errorf("progress.Reader: source reader (%T) is not an io.ReadSeeker", r.inner)
+	}
+	n, err := seeker.Seek(offset, whence)
+	if err != nil {
+		return 0, err
+	}
+	r.readBytes = int(n)
+	r.progressFn(r.readBytes)
+	r.lastUpdate = r.readBytes
+	return n, nil
+}
+
+var _ io.ReadSeekCloser = (*Reader)(nil)
