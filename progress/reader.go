@@ -5,9 +5,11 @@ import (
 	"io"
 )
 
-// Reader is an [io.ReadCloser] that reports the number of bytes read from it
-// via a callback. The callback is called at most every "updateInterval" bytes.
+// Reader is an [io.ReadSeekCloser] that reports the number of bytes read from it via a callback.
+//
+// The callback is called at most every "updateInterval" bytes.
 // The updateInterval can be set using the [Reader.WithUpdateInterval] method.
+// The callback will also be called whenever [Reader.Seek] is called.
 //
 // The following is an example of how to use [Reader] to report the progress of
 // reading from a file:
