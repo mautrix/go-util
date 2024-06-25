@@ -24,6 +24,10 @@ type upgrade struct {
 	transaction   bool
 }
 
+func (u *upgrade) DangerouslyRun(ctx context.Context, db *Database) (upgradesTo, compat int, err error) {
+	return u.upgradesTo, u.compatVersion, u.fn(ctx, db)
+}
+
 var ErrUnsupportedDatabaseVersion = errors.New("unsupported database schema version")
 var ErrForeignTables = errors.New("the database contains foreign tables")
 var ErrNotOwned = errors.New("the database is owned by")
