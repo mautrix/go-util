@@ -45,7 +45,7 @@ type ConvertRowFn[T any] func(Scannable) (T, error)
 //		)
 //	}
 func (crf ConvertRowFn[T]) NewRowIter(rows Rows, err error) RowIter[T] {
-	return NewRowIterWithError(rows, crf, err)
+	return newRowIterWithError(rows, crf, err)
 }
 
 type rowIterImpl[T any] struct {
