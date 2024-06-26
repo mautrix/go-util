@@ -157,6 +157,16 @@ func (db *Database) parseDialectFilter(line []byte) (dialect Dialect, lineCount 
 
 var endLineFilter = regexp.MustCompile(`^\s*-- end only (postgres|sqlite)$`)
 
+func (db *Database) Internals() *publishDatabaseInternals {
+	return (*publishDatabaseInternals)(db)
+}
+
+type publishDatabaseInternals Database
+
+func (di *publishDatabaseInternals) FilterSQLUpgrade(lines [][]byte) (string, error) {
+	return (*Database)(di).filterSQLUpgrade(lines)
+}
+
 func (db *Database) filterSQLUpgrade(lines [][]byte) (string, error) {
 	output := make([][]byte, 0, len(lines))
 	for i := 0; i < len(lines); i++ {
