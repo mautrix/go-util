@@ -6,6 +6,14 @@
 
 package ptr
 
+func Clone[T any](val *T) *T {
+	if val == nil {
+		return nil
+	}
+	valCopy := *val
+	return &valCopy
+}
+
 func Ptr[T any](val T) *T {
 	return &val
 }
