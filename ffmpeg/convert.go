@@ -68,7 +68,7 @@ func ConvertPath(ctx context.Context, inputFile string, outputExtension string, 
 	cmd.Stderr = logWriter
 	err := cmd.Run()
 	if err != nil {
-		return "", fmt.Errorf("ffmpeg error: %+v", err)
+		return "", fmt.Errorf("ffmpeg error: %w", err)
 	}
 
 	if removeInput {
