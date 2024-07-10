@@ -7,13 +7,17 @@
 package lottie
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
+	"strconv"
 
 	"github.com/rs/zerolog"
 	"go.mau.fi/util/exzerolog"
+	"go.mau.fi/util/ffmpeg"
 )
 
 var lottieconverterPath string
@@ -76,4 +80,82 @@ func Convert(ctx context.Context, input io.Reader, outputFilename string, output
 		return fmt.Errorf("lottieconverter error: %w", err)
 	}
 	return nil
+}
+
+// FfmpegConvert converts lottie data to a video or image using ffmpeg.
+//
+// This function should only be called if [ffmpeg.Supported] returns true.
+//
+// Args:
+//   - input: an io.Reader containing the lottie data to convert.
+//   - target: the output format. Can be one of: webm, webp.
+//   - width: the width of the output video or image.
+//   - height: the height of the output video or image.
+//   - fps: the framerate of the output video.
+//
+// Returns: the converted data as a *bytes.Buffer, the mimetype of the output,
+// and the thumbnail data as a PNG.
+func FfmpegConvert(ctx context.Context, input io.Reader, target string, width, height, fps int) (*bytes.Buffer, string, []byte, error) {
+	if !ffmpeg.Supported() {
+		panic("ffmpeg is not available")
+	}
+
+	var tmpDir string
+	tmpDir, err := os.MkdirTemp("", "lottieconvert")
+	if err != nil {
+		return nil, "", nil, err
+	}
+	defer os.RemoveAll(tmpDir)
+
+	err = Convert(ctx, input, tmpDir+"/out_", nil, "pngs", width, height, strconv.Itoa(fps))
+	if err != nil {
+		return nil, "", nil, err
+	}
+
+	files, err := os.ReadDir(tmpDir)
+	if err != nil {
+		return nil, "", nil, err
+	}
+
+	var thumbnailData []byte
+	var firstFrameName string
+	for _, file := range files {
+		if firstFrameName == "" || file.Name() < firstFrameName {
+			firstFrameName = file.Name()
+		}
+	}
+	thumbnailData, err = os.ReadFile(fmt.Sprintf("%s/%s", tmpDir, firstFrameName))
+	if err != nil {
+		return nil, "", nil, err
+	}
+
+	var mimeType string
+	var outputArgs []string
+	switch target {
+	case "webm":
+		mimeType = "video/webm"
+		outputArgs = []string{"-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-f", "webm"}
+	case "webp":
+		mimeType = "image/webp"
+		outputArgs = []string{"-c:v", "libwebp_anim", "-pix_fmt", "yuva420p", "-f", "webp"}
+	default:
+		panic(fmt.Sprintf("unsupported target %s", target))
+	}
+	convertedFilename, err := ffmpeg.ConvertPath(
+		ctx,
+		tmpDir+"/out_*.png",
+		"",
+		[]string{"-framerate", strconv.Itoa(fps), "-pattern_type", "glob"},
+		outputArgs,
+		false,
+	)
+	if err != nil {
+		return nil, "", nil, err
+	} else if file, err := os.Open(convertedFilename); err != nil {
+		return nil, "", nil, err
+	} else {
+		var buf bytes.Buffer
+		_, err = io.Copy(&buf, file)
+		return &buf, mimeType, thumbnailData, err
+	}
 }
