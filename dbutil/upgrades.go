@@ -157,7 +157,7 @@ func (db *Database) setVersion(ctx context.Context, version, compat int) error {
 	return err
 }
 
-func (db *Database) doSQLiteFKeyOffTxn(ctx context.Context, doUpgrade func(context.Context) error) error {
+func (db *Database) DoSQLiteTransactionWithoutForeignKeys(ctx context.Context, doUpgrade func(context.Context) error) error {
 	conn, err := db.AcquireConn(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to acquire connection: %w", err)
@@ -178,6 +178,7 @@ func (db *Database) doSQLiteFKeyOffTxn(ctx context.Context, doUpgrade func(conte
 		return nil
 	})
 	if err != nil {
+		_, _ = conn.ExecContext(ctx, "PRAGMA foreign_keys=ON")
 		return err
 	}
 	_, err = conn.ExecContext(ctx, "PRAGMA foreign_keys=ON")
@@ -236,7 +237,7 @@ func (db *Database) Upgrade(ctx context.Context) error {
 		case TxnModeSQLiteForeignKeysOff:
 			switch db.Dialect {
 			case SQLite:
-				err = db.doSQLiteFKeyOffTxn(ctx, doUpgrade)
+				err = db.DoSQLiteTransactionWithoutForeignKeys(ctx, doUpgrade)
 			default:
 				err = db.DoTxn(ctx, nil, doUpgrade)
 			}
