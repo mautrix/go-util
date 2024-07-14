@@ -98,6 +98,8 @@ func TestAdd(t *testing.T) {
 	assert.Equal(t, "4\ufe0f\u20e3", variationselector.Add("4\ufe0f\u20e3"))
 	assert.Equal(t, "\U0001f914", variationselector.Add("\U0001f914"))
 	assert.Equal(t, "\U0001f408\u200d\u2b1b", variationselector.Add("\U0001f408\u200d\u2b1b"))
+	assert.Equal(t, "\u2122\ufe0f", variationselector.Add("\u2122"))
+	assert.Equal(t, "\u2122\ufe0e", variationselector.Add("\u2122\ufe0e"))
 }
 
 func TestFullyQualify(t *testing.T) {
@@ -110,7 +112,9 @@ func TestFullyQualify(t *testing.T) {
 	assert.Equal(t, "\u263a\ufe0f", variationselector.FullyQualify("\u263a"))
 	assert.Equal(t, "\U0001f3f3\ufe0f\u200D\U0001f308", variationselector.FullyQualify("\U0001f3f3\u200D\U0001f308"))
 	assert.Equal(t, "\U0001f3f3\ufe0f\u200D\U0001f308", variationselector.FullyQualify("\U0001f3f3\ufe0f\u200D\U0001f308"))
-	assert.Equal(t, "\U0001f408\u200d\u2b1b", variationselector.Add("\U0001f408\u200d\u2b1b"))
+	assert.Equal(t, "\U0001f408\u200d\u2b1b", variationselector.FullyQualify("\U0001f408\u200d\u2b1b"))
+	assert.Equal(t, "\u2122\ufe0f", variationselector.FullyQualify("\u2122"))
+	assert.Equal(t, "\u2122\ufe0e", variationselector.FullyQualify("\u2122\ufe0e"))
 }
 
 func TestRemove(t *testing.T) {
@@ -157,26 +161,62 @@ func ExampleRemove() {
 	// "\U0001f44d"
 }
 
-func BenchmarkAdd(b *testing.B) {
+func doBenchmarkAdd(b *testing.B, input string) {
 	for i := 0; i < b.N; i++ {
-		variationselector.Add("\U0001f44d\U0001f3fd")
-		variationselector.Add("\U0001f44d")
-		variationselector.Add("\U0001f44d\ufe0f")
-		variationselector.Add("4\u20e3")
-		variationselector.Add("4\ufe0f\u20e3")
-		variationselector.Add("\U0001f914")
-		variationselector.Add("\U0001f408\u200d\u2b1b")
+		variationselector.Add(input)
 	}
 }
 
-func BenchmarkFullyQualify(b *testing.B) {
+func BenchmarkAddNumber4(b *testing.B) {
+	doBenchmarkAdd(b, "4️\u20e3")
+}
+
+func BenchmarkAddBlackCat(b *testing.B) {
+	doBenchmarkAdd(b, "\U0001f408\u200d\u2b1b")
+}
+
+func BenchmarkAddString(b *testing.B) {
+	doBenchmarkAdd(b, "This is a slightly longer 🤔 string 🐈️ that contains a few emojis 👍️")
+}
+
+func BenchmarkAddLongString(b *testing.B) {
+	doBenchmarkAdd(b, strings.Repeat("This is a slightly longer 🤔 string 🐈️ that contains a few emojis 👍️", 1000))
+}
+
+func BenchmarkAddNoEmojis(b *testing.B) {
+	doBenchmarkAdd(b, "This is a slightly longer string that does not contain any emojis")
+}
+
+func BenchmarkAddNoEmojisLong(b *testing.B) {
+	doBenchmarkAdd(b, strings.Repeat("This is a slightly longer string that does not contain any emojis", 1000))
+}
+
+func doBenchmarkFullyQualify(b *testing.B, input string) {
 	for i := 0; i < b.N; i++ {
-		variationselector.FullyQualify("\U0001f44d\U0001f3fd")
-		variationselector.FullyQualify("\U0001f44d")
-		variationselector.FullyQualify("\U0001f44d\ufe0f")
-		variationselector.FullyQualify("4\u20e3")
-		variationselector.FullyQualify("4\ufe0f\u20e3")
-		variationselector.FullyQualify("\U0001f914")
-		variationselector.FullyQualify("\U0001f408\u200d\u2b1b")
+		variationselector.FullyQualify(input)
 	}
+}
+
+func BenchmarkFullyQualifyNumber4(b *testing.B) {
+	doBenchmarkFullyQualify(b, "4\ufe0f\u20e3")
+}
+
+func BenchmarkFullyQualifyBlackCat(b *testing.B) {
+	doBenchmarkFullyQualify(b, "\U0001f408\u200d\u2b1b")
+}
+
+func BenchmarkFullyQualifyString(b *testing.B) {
+	doBenchmarkFullyQualify(b, "This is a slightly longer 🤔 string 🐈️ that contains a few emojis 👍️")
+}
+
+func BenchmarkFullyQualifyLongString(b *testing.B) {
+	doBenchmarkFullyQualify(b, strings.Repeat("This is a slightly longer 🤔 string 🐈️ that contains a few emojis 👍️", 1000))
+}
+
+func BenchmarkFullyQualifyNoEmojis(b *testing.B) {
+	doBenchmarkFullyQualify(b, "This is a slightly longer string that does not contain any emojis")
+}
+
+func BenchmarkFullyQualifyNoEmojisLong(b *testing.B) {
+	doBenchmarkFullyQualify(b, strings.Repeat("This is a slightly longer string that does not contain any emojis", 1000))
 }

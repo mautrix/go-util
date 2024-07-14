@@ -10,24 +10,15 @@ package variationselector
 
 import (
 	_ "embed"
-	"encoding/json"
-	"fmt"
 	"regexp"
 	"strings"
 	"sync"
 )
 
-//go:generate ./generate.sh
-
-//go:embed emojis-with-extra-variations.json
-var emojisWithExtraVariationsJSON []byte
-
-//go:embed fully-qualified-variations.json
-var fullyQualifiedVariationsJSON []byte
-
-var fullyQualifier *strings.Replacer
+//go:generate go run ./generate.go
 
 var initOnce sync.Once
+var fullyQualifier *strings.Replacer
 var variationRegex *regexp.Regexp
 
 // The fully qualifying replacer will add incorrect variation selectors before skin tones, this removes those.
@@ -39,35 +30,6 @@ var skinToneReplacer = strings.NewReplacer(
 	"\ufe0f\U0001F3FF", "\U0001F3FF",
 	"\ufe0f\ufe0e", "\ufe0e",
 )
-
-func doInit() {
-	var emojisWithExtraVariations []string
-	err := json.Unmarshal(emojisWithExtraVariationsJSON, &emojisWithExtraVariations)
-	if err != nil {
-		panic(err)
-	}
-	for i, emoji := range emojisWithExtraVariations {
-		emojiRunes := []rune(emoji)
-		if len(emojiRunes) > 1 {
-			panic(fmt.Sprintf("emoji %s is more than one rune long", emoji))
-		}
-		emojisWithExtraVariations[i] = fmt.Sprintf(`\x{%X}`, emojiRunes[0])
-	}
-	variationPattern := fmt.Sprintf(`(^|[^\x{200D}])(%s)([^\x{FE0F}\x{FE0E}\x{200D}\x{1F3FB}\x{1F3FC}\x{1F3FD}\x{1F3FE}\x{1F3FF}]|$)`, strings.Join(emojisWithExtraVariations, "|"))
-	variationRegex = regexp.MustCompile(variationPattern)
-
-	var fullyQualifiedVariations []string
-	err = json.Unmarshal(fullyQualifiedVariationsJSON, &fullyQualifiedVariations)
-	if err != nil {
-		panic(err)
-	}
-	replaceInput := make([]string, 2*len(fullyQualifiedVariations))
-	for i, emoji := range fullyQualifiedVariations {
-		replaceInput[i*2] = strings.ReplaceAll(emoji, VS16, "")
-		replaceInput[(i*2)+1] = emoji
-	}
-	fullyQualifier = strings.NewReplacer(replaceInput...)
-}
 
 const VS16 = "\ufe0f"
 

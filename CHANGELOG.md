@@ -22,6 +22,8 @@
 * *(gnuzip)* Added wrappers for gzip that operate on `[]byte`s instead of
   `io.Reader`/`Writer`s.
 * *(lottie)* Added wrapper for [lottieconverter] similar to ffmpeg.
+* *(variationselector)* Fixed edge cases where `Add` and `FullyQualify`
+  produced invalid output.
 
 [lottieconverter]: https://github.com/sot-tech/LottieConverter
 
