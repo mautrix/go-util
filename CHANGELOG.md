@@ -1,4 +1,4 @@
-# v0.6.0 (unreleased)
+# v0.6.0 (2024-07-16)
 
 * *(dbutil)* Added `-- transaction: sqlite-fkey-off` mode to upgrades, which
   allows safer upgrades that disable foreign keys without having to disable
