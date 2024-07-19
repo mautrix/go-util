@@ -68,7 +68,7 @@ func Parse(curl string) (*Parsed, error) {
 			i++
 			body = parts[i]
 			if strings.HasPrefix(body, "$") {
-				body = ansiCQuoteReplacer.Replace(body)
+				body = ansiCQuoteReplacer.Replace(body[1:])
 			}
 		case "-X":
 			i++
