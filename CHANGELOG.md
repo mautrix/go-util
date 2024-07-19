@@ -1,3 +1,9 @@
+# unreleased
+
+* *(curl)* Added `Parse` function to parse a curl command exported from browser
+  devtools.
+* *(exfmt)* Moved `FormatCurl` to `curl` package.
+
 # v0.6.0 (2024-07-16)
 
 * *(dbutil)* Added `-- transaction: sqlite-fkey-off` mode to upgrades, which

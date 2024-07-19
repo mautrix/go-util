@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-package exfmt
+package curl
 
 import (
 	"encoding/base64"
@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-// FormatCurl formats the given HTTP request as a curl command.
+// Format formats the given HTTP request as a curl command.
 //
 // This will include all headers, and also the request body if GetBody is set. Notes:
 //
@@ -22,7 +22,7 @@ import (
 // * The URL is only quoted and not escaped, so URLs with single quotes will not currently work.
 //
 // The client parameter is optional and is used to find cookies from the cookie jar.
-func FormatCurl(cli *http.Client, req *http.Request) string {
+func Format(cli *http.Client, req *http.Request) string {
 	var curl []string
 	hasBody := false
 	if req.GetBody != nil {
