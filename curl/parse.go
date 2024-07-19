@@ -62,7 +62,7 @@ func Parse(curl string) (*Parsed, error) {
 		switch val {
 		case "-H":
 			i++
-			hdrParts := strings.SplitN(parts[i], ": ", 1)
+			hdrParts := strings.SplitN(parts[i], ": ", 2)
 			req.Header.Add(hdrParts[0], hdrParts[1])
 		case "--data-raw", "--data-binary":
 			i++
