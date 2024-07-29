@@ -4,10 +4,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-package util
+package ptr
 
-const Version = "v0.6.0"
+func Clone[T any](val *T) *T {
+	if val == nil {
+		return nil
+	}
+	valCopy := *val
+	return &valCopy
+}
 
-func VersionArray() [3]uint {
-	return [3]uint{0, 6, 0}
+func Ptr[T any](val T) *T {
+	return &val
+}
+
+func Val[T any](ptr *T) (val T) {
+	if ptr != nil {
+		val = *ptr
+	}
+	return
 }

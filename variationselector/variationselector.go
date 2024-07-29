@@ -10,54 +10,26 @@ package variationselector
 
 import (
 	_ "embed"
-	"encoding/json"
+	"regexp"
 	"strings"
+	"sync"
 )
 
-//go:generate ./generate.sh
+//go:generate go run ./generate.go
 
-//go:embed emojis-with-variations.json
-var emojisWithVariationsJSON []byte
+var initOnce sync.Once
+var fullyQualifier *strings.Replacer
+var variationRegex *regexp.Regexp
 
-//go:embed fully-qualified-variations.json
-var fullyQualifiedVariationsJSON []byte
-
-var variationReplacer, fullyQualifier *strings.Replacer
-
-// The variation replacer will add incorrect variation selectors before skin tones, this removes those.
+// The fully qualifying replacer will add incorrect variation selectors before skin tones, this removes those.
 var skinToneReplacer = strings.NewReplacer(
 	"\ufe0f\U0001F3FB", "\U0001F3FB",
 	"\ufe0f\U0001F3FC", "\U0001F3FC",
 	"\ufe0f\U0001F3FD", "\U0001F3FD",
 	"\ufe0f\U0001F3FE", "\U0001F3FE",
 	"\ufe0f\U0001F3FF", "\U0001F3FF",
+	"\ufe0f\ufe0e", "\ufe0e",
 )
-
-func init() {
-	var emojisWithVariations []string
-	err := json.Unmarshal(emojisWithVariationsJSON, &emojisWithVariations)
-	if err != nil {
-		panic(err)
-	}
-	replaceInput := make([]string, 2*len(emojisWithVariations))
-	for i, emoji := range emojisWithVariations {
-		replaceInput[i*2] = emoji
-		replaceInput[(i*2)+1] = emoji + VS16
-	}
-	variationReplacer = strings.NewReplacer(replaceInput...)
-
-	var fullyQualifiedVariations []string
-	err = json.Unmarshal(fullyQualifiedVariationsJSON, &fullyQualifiedVariations)
-	if err != nil {
-		panic(err)
-	}
-	replaceInput = make([]string, 2*len(fullyQualifiedVariations))
-	for i, emoji := range fullyQualifiedVariations {
-		replaceInput[i*2] = strings.ReplaceAll(emoji, VS16, "")
-		replaceInput[(i*2)+1] = emoji
-	}
-	fullyQualifier = strings.NewReplacer(replaceInput...)
-}
 
 const VS16 = "\ufe0f"
 
@@ -71,7 +43,8 @@ const VS16 = "\ufe0f"
 //
 // This will remove all variation selectors first to make sure it doesn't add duplicates.
 func Add(val string) string {
-	return skinToneReplacer.Replace(variationReplacer.Replace(Remove(val)))
+	initOnce.Do(doInit)
+	return variationRegex.ReplaceAllString(FullyQualify(val), "$1$2\ufe0f$3")
 }
 
 // Remove removes all emoji variation selectors in the given string.
@@ -89,5 +62,6 @@ func Remove(val string) string {
 //
 // N.B. This method is not currently used by the Matrix spec, but it is included as bridging to other networks may need it.
 func FullyQualify(val string) string {
-	return fullyQualifier.Replace(Remove(val))
+	initOnce.Do(doInit)
+	return skinToneReplacer.Replace(fullyQualifier.Replace(Remove(val)))
 }

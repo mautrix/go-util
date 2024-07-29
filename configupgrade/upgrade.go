@@ -18,6 +18,12 @@ type Upgrader interface {
 	DoUpgrade(helper Helper)
 }
 
+type noopUpgrader struct{}
+
+func (*noopUpgrader) DoUpgrade(helper Helper) {}
+
+var NoopUpgrader Upgrader = &noopUpgrader{}
+
 type SpacedUpgrader interface {
 	Upgrader
 	SpacedBlocks() [][]string
