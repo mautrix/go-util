@@ -1,61 +1,37 @@
-//go:build ignore
-
 // Copyright (c) 2024 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+//go:build ignore
+
 package main
 
 import (
-	"bufio"
-	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
 	"golang.org/x/exp/slices"
 
 	"go.mau.fi/util/exerrors"
+	"go.mau.fi/util/unicodeurls"
 )
 
-const UnicodeVersion = "15.1"
-
-func readEmojiLines(url, filter string) (output []string) {
-	resp := exerrors.Must(http.Get(url))
-	buf := bufio.NewReader(resp.Body)
-	for {
-		line, err := buf.ReadString('\n')
-		if errors.Is(err, io.EOF) {
-			break
-		} else if err != nil {
-			panic(err)
-		}
+func readEmojiLines(url, filter string) []string {
+	return unicodeurls.ReadDataFileList(url, func(line string) (string, bool) {
 		parts := strings.Split(line, "; ")
 		if len(parts) < 2 || !strings.HasPrefix(parts[1], filter) {
-			continue
+			return "", false
 		}
-		output = append(output, strings.TrimSpace(parts[0]))
-	}
-	return
-}
-
-func unifiedToUnicode(input string) string {
-	parts := strings.Split(input, " ")
-	output := make([]rune, len(parts))
-	for i, part := range parts {
-		output[i] = rune(exerrors.Must(strconv.ParseInt(part, 16, 32)))
-	}
-	return string(output)
+		return strings.TrimSpace(parts[0]), true
+	})
 }
 
 func main() {
-	variationSequences := readEmojiLines("https://www.unicode.org/Public/"+UnicodeVersion+".0/ucd/emoji/emoji-variation-sequences.txt", "emoji style")
-	fullyQualifiedSequences := readEmojiLines("https://unicode.org/Public/emoji/"+UnicodeVersion+"/emoji-test.txt", "fully-qualified")
+	variationSequences := readEmojiLines(unicodeurls.EmojiVariationSequences, "emoji style")
+	fullyQualifiedSequences := readEmojiLines(unicodeurls.EmojiTest, "fully-qualified")
 	var extraVariations []string
 	for _, seq := range variationSequences {
 		if !slices.Contains(fullyQualifiedSequences, seq) {
@@ -84,7 +60,7 @@ func doInit() {
 		if !strings.Contains(unified, "FE0F") {
 			continue
 		}
-		unicode := unifiedToUnicode(unified)
+		unicode := unicodeurls.ParseHex(strings.Split(unified, " "))
 		exerrors.Must(fmt.Fprintf(file, "\t\t\"%s\",\n", unicode))
 	}
 	exerrors.Must(file.WriteString("\t}\n"))
@@ -97,4 +73,5 @@ func doInit() {
 `))
 	exerrors.Must(file.WriteString("\tfullyQualifier = strings.NewReplacer(replacerArgs...)\n"))
 	exerrors.Must(file.WriteString("}\n"))
+	exerrors.PanicIfNotNil(file.Close())
 }
