@@ -124,6 +124,8 @@ type Database struct {
 	DeadlockDetection         bool
 }
 
+var ForceDeadlockDetection bool
+
 var positionalParamPattern = regexp.MustCompile(`\$(\d+)`)
 
 func (db *Database) mutateQuery(query string) string {
@@ -172,6 +174,8 @@ func NewWithDB(db *sql.DB, rawDialect string) (*Database, error) {
 
 		txnCtxKey:      contextKey(nextContextKeyDatabaseTransaction.Add(1)),
 		txnDeadlockMap: exsync.NewSet[int64](),
+
+		DeadlockDetection: ForceDeadlockDetection,
 	}
 	wrappedDB.LoggingDB.UnderlyingExecable = db
 	wrappedDB.LoggingDB.db = wrappedDB
@@ -220,7 +224,7 @@ func (db *Database) Close() error {
 }
 
 func (db *Database) Configure(cfg Config) error {
-	db.DeadlockDetection = cfg.DeadlockDetection
+	db.DeadlockDetection = cfg.DeadlockDetection || ForceDeadlockDetection
 
 	if err := db.configure(db.ReadOnlyDB, cfg.ReadOnlyPool); err != nil {
 		return err
