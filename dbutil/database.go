@@ -14,6 +14,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"go.mau.fi/util/exsync"
 )
 
 type Dialect int
@@ -114,10 +116,12 @@ type Database struct {
 	Dialect      Dialect
 	UpgradeTable UpgradeTable
 
-	txnCtxKey contextKey
+	txnCtxKey      contextKey
+	txnDeadlockMap *exsync.Set[int64]
 
 	IgnoreForeignTables       bool
 	IgnoreUnsupportedDatabase bool
+	DeadlockDetection         bool
 }
 
 var positionalParamPattern = regexp.MustCompile(`\$(\d+)`)
@@ -144,10 +148,12 @@ func (db *Database) Child(versionTable string, upgradeTable UpgradeTable, log Da
 		Log:          log,
 		Dialect:      db.Dialect,
 
-		txnCtxKey: db.txnCtxKey,
+		txnCtxKey:      db.txnCtxKey,
+		txnDeadlockMap: db.txnDeadlockMap,
 
 		IgnoreForeignTables:       true,
 		IgnoreUnsupportedDatabase: db.IgnoreUnsupportedDatabase,
+		DeadlockDetection:         db.DeadlockDetection,
 	}
 }
 
@@ -164,7 +170,8 @@ func NewWithDB(db *sql.DB, rawDialect string) (*Database, error) {
 		IgnoreForeignTables: true,
 		VersionTable:        "version",
 
-		txnCtxKey: contextKey(nextContextKeyDatabaseTransaction.Add(1)),
+		txnCtxKey:      contextKey(nextContextKeyDatabaseTransaction.Add(1)),
+		txnDeadlockMap: exsync.NewSet[int64](),
 	}
 	wrappedDB.LoggingDB.UnderlyingExecable = db
 	wrappedDB.LoggingDB.db = wrappedDB
@@ -194,6 +201,8 @@ type PoolConfig struct {
 type Config struct {
 	PoolConfig   `yaml:",inline"`
 	ReadOnlyPool PoolConfig `yaml:"ro_pool"`
+
+	DeadlockDetection bool `yaml:"deadlock_detection"`
 }
 
 func (db *Database) Close() error {
@@ -211,6 +220,8 @@ func (db *Database) Close() error {
 }
 
 func (db *Database) Configure(cfg Config) error {
+	db.DeadlockDetection = cfg.DeadlockDetection
+
 	if err := db.configure(db.ReadOnlyDB, cfg.ReadOnlyPool); err != nil {
 		return err
 	}
