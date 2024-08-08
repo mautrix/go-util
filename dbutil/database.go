@@ -271,6 +271,8 @@ func NewFromConfig(owner string, cfg Config, logger DatabaseLogger) (*Database, 
 				}
 
 				qs.Del("_txlock")
+				qs.Del("_auto_vacuum")
+				qs.Del("_vacuum")
 			}
 			qs.Set("_query_only", "true")
 
