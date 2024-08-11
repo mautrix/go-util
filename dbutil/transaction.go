@@ -60,13 +60,6 @@ func (db *Database) BeginTx(ctx context.Context, opts *TxnOptions) (*LoggingTxn,
 	if ctx == nil {
 		panic("BeginTx() called with nil ctx")
 	}
-	if db.DeadlockDetection {
-		goroutineID := goid.Get()
-		if !db.txnDeadlockMap.Add(goroutineID) {
-			panic(ErrTransactionDeadlock)
-		}
-		defer db.txnDeadlockMap.Remove(goroutineID)
-	}
 	return db.LoggingDB.BeginTx(ctx, opts)
 }
 
@@ -77,6 +70,12 @@ func (db *Database) DoTxn(ctx context.Context, opts *TxnOptions, fn func(ctx con
 	if ctx.Value(db.txnCtxKey) != nil {
 		zerolog.Ctx(ctx).Trace().Msg("Already in a transaction, not creating a new one")
 		return fn(ctx)
+	} else if db.DeadlockDetection {
+		goroutineID := goid.Get()
+		if !db.txnDeadlockMap.Add(goroutineID) {
+			panic(ErrTransactionDeadlock)
+		}
+		defer db.txnDeadlockMap.Remove(goroutineID)
 	}
 
 	log := zerolog.Ctx(ctx).With().Str("db_txn_id", random.String(12)).Logger()
