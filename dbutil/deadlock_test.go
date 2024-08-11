@@ -84,8 +84,32 @@ func TestDatabase_Deadlock(t *testing.T) {
 	db := initTestDB(t)
 	ctx := context.Background()
 	_ = db.DoTxn(ctx, nil, func(ctx context.Context) error {
-		assert.Panics(t, func() {
+		assert.PanicsWithError(t, dbutil.ErrQueryDeadlock.Error(), func() {
 			_, _ = db.Exec(context.Background(), "INSERT INTO meow (value) VALUES ('meow 4');")
+		})
+		return fmt.Errorf("meow")
+	})
+}
+
+func TestDatabase_Deadlock_Acquire(t *testing.T) {
+	db := initTestDB(t)
+	ctx := context.Background()
+	_ = db.DoTxn(ctx, nil, func(ctx context.Context) error {
+		assert.PanicsWithError(t, dbutil.ErrAcquireDeadlock.Error(), func() {
+			_, _ = db.AcquireConn(context.Background())
+		})
+		return fmt.Errorf("meow")
+	})
+}
+
+func TestDatabase_Deadlock_Txn(t *testing.T) {
+	db := initTestDB(t)
+	ctx := context.Background()
+	_ = db.DoTxn(ctx, nil, func(ctx context.Context) error {
+		assert.PanicsWithError(t, dbutil.ErrTransactionDeadlock.Error(), func() {
+			_ = db.DoTxn(context.Background(), nil, func(ctx context.Context) error {
+				return nil
+			})
 		})
 		return fmt.Errorf("meow")
 	})
@@ -96,7 +120,7 @@ func TestDatabase_Deadlock_Child(t *testing.T) {
 	ctx := context.Background()
 	childDB := db.Child("", nil, nil)
 	_ = db.DoTxn(ctx, nil, func(ctx context.Context) error {
-		assert.Panics(t, func() {
+		assert.PanicsWithError(t, dbutil.ErrQueryDeadlock.Error(), func() {
 			_, _ = childDB.Exec(context.Background(), "INSERT INTO meow (value) VALUES ('meow 4');")
 		})
 		return fmt.Errorf("meow")
@@ -108,7 +132,7 @@ func TestDatabase_Deadlock_Child2(t *testing.T) {
 	ctx := context.Background()
 	childDB := db.Child("", nil, nil)
 	_ = childDB.DoTxn(ctx, nil, func(ctx context.Context) error {
-		assert.Panics(t, func() {
+		assert.PanicsWithError(t, dbutil.ErrQueryDeadlock.Error(), func() {
 			_, _ = db.Exec(context.Background(), "INSERT INTO meow (value) VALUES ('meow 4');")
 		})
 		return fmt.Errorf("meow")
