@@ -90,3 +90,27 @@ func TestDatabase_Deadlock(t *testing.T) {
 		return fmt.Errorf("meow")
 	})
 }
+
+func TestDatabase_Deadlock_Child(t *testing.T) {
+	db := initTestDB(t)
+	ctx := context.Background()
+	childDB := db.Child("", nil, nil)
+	_ = db.DoTxn(ctx, nil, func(ctx context.Context) error {
+		assert.Panics(t, func() {
+			_, _ = childDB.Exec(context.Background(), "INSERT INTO meow (value) VALUES ('meow 4');")
+		})
+		return fmt.Errorf("meow")
+	})
+}
+
+func TestDatabase_Deadlock_Child2(t *testing.T) {
+	db := initTestDB(t)
+	ctx := context.Background()
+	childDB := db.Child("", nil, nil)
+	_ = childDB.DoTxn(ctx, nil, func(ctx context.Context) error {
+		assert.Panics(t, func() {
+			_, _ = db.Exec(context.Background(), "INSERT INTO meow (value) VALUES ('meow 4');")
+		})
+		return fmt.Errorf("meow")
+	})
+}
