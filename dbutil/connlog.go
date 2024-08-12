@@ -11,7 +11,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"runtime"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -19,7 +19,16 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
-var sem *semaphore.Weighted = semaphore.NewWeighted(int64(runtime.GOMAXPROCS(0)))
+var sem *semaphore.Weighted
+
+func init() {
+	maxSqlSemaphore, _ := strconv.ParseInt(os.Getenv("MAXSQLSEMAPHORE"), 10, 64)
+	if maxSqlSemaphore < 1 {
+		maxSqlSemaphore = 1
+	}
+
+	sem = semaphore.NewWeighted(maxSqlSemaphore)
+}
 
 // LoggingExecable is a wrapper for anything with database Exec methods (i.e. sql.Conn, sql.DB and sql.Tx)
 // that can preprocess queries (e.g. replacing $ with ? on SQLite) and log query durations.
