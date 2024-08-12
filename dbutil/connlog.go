@@ -75,7 +75,7 @@ func (le *LoggingExecable) ExecContext(ctx context.Context, query string, args .
 	if err := sem.Acquire(ctx, 1); err != nil {
 		return nil, err
 	}
-	defer sem.Release(1)
+	sem.Release(1)
 	res, err := le.UnderlyingExecable.ExecContext(ctx, query, args...)
 	err = addErrorLine(query, err)
 	le.db.Log.QueryTiming(ctx, "Exec", query, args, -1, time.Since(start), err)
@@ -88,7 +88,7 @@ func (le *LoggingExecable) QueryContext(ctx context.Context, query string, args 
 	if err := sem.Acquire(ctx, 1); err != nil {
 		return nil, err
 	}
-	defer sem.Release(1)
+	sem.Release(1)
 	rows, err := le.UnderlyingExecable.QueryContext(ctx, query, args...)
 	err = addErrorLine(query, err)
 	le.db.Log.QueryTiming(ctx, "Query", query, args, -1, time.Since(start), err)
@@ -114,7 +114,7 @@ func (le *LoggingExecable) beginTx(ctx context.Context, opts *sql.TxOptions) (*s
 	if err := sem.Acquire(ctx, 1); err != nil {
 		return nil, err
 	}
-	defer sem.Release(1)
+	sem.Release(1)
 	txBeginner, ok := le.UnderlyingExecable.(UnderlyingExecutableWithTx)
 	if !ok {
 		return nil, fmt.Errorf("can't start transaction with a %T", le.UnderlyingExecable)
@@ -187,7 +187,7 @@ func (lt *LoggingTxn) Commit() error {
 	if err := sem.Acquire(lt.ctx, 1); err != nil {
 		return err
 	}
-	defer sem.Release(1)
+	sem.Release(1)
 	err := lt.UnderlyingTx.Commit()
 	lt.EndTime = time.Now()
 	if !lt.noTotalLog {
@@ -202,7 +202,7 @@ func (lt *LoggingTxn) Rollback() error {
 	if err := sem.Acquire(lt.ctx, 1); err != nil {
 		return err
 	}
-	defer sem.Release(1)
+	sem.Release(1)
 	err := lt.UnderlyingTx.Rollback()
 	lt.EndTime = time.Now()
 	if !lt.noTotalLog {
@@ -251,7 +251,7 @@ func (lrs *LoggingRows) Next() bool {
 	if err := sem.Acquire(lrs.ctx, 1); err != nil {
 		return false
 	}
-	defer sem.Release(1)
+	sem.Release(1)
 	hasNext := lrs.rs.Next()
 
 	if !hasNext {
@@ -267,7 +267,7 @@ func (lrs *LoggingRows) NextResultSet() bool {
 	if err := sem.Acquire(lrs.ctx, 1); err != nil {
 		return false
 	}
-	defer sem.Release(1)
+	sem.Release(1)
 	hasNext := lrs.rs.NextResultSet()
 
 	if !hasNext {
