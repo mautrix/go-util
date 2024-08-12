@@ -11,10 +11,15 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/sync/semaphore"
 )
+
+var sem *semaphore.Weighted = semaphore.NewWeighted(int64(runtime.GOMAXPROCS(0)))
 
 // LoggingExecable is a wrapper for anything with database Exec methods (i.e. sql.Conn, sql.DB and sql.Tx)
 // that can preprocess queries (e.g. replacing $ with ? on SQLite) and log query durations.
@@ -67,6 +72,10 @@ func addErrorLine(query string, err error) error {
 func (le *LoggingExecable) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
 	start := time.Now()
 	query = le.db.mutateQuery(query)
+	if err := sem.Acquire(ctx, 1); err != nil {
+		return nil, err
+	}
+	defer sem.Release(1)
 	res, err := le.UnderlyingExecable.ExecContext(ctx, query, args...)
 	err = addErrorLine(query, err)
 	le.db.Log.QueryTiming(ctx, "Exec", query, args, -1, time.Since(start), err)
@@ -76,6 +85,10 @@ func (le *LoggingExecable) ExecContext(ctx context.Context, query string, args .
 func (le *LoggingExecable) QueryContext(ctx context.Context, query string, args ...any) (Rows, error) {
 	start := time.Now()
 	query = le.db.mutateQuery(query)
+	if err := sem.Acquire(ctx, 1); err != nil {
+		return nil, err
+	}
+	defer sem.Release(1)
 	rows, err := le.UnderlyingExecable.QueryContext(ctx, query, args...)
 	err = addErrorLine(query, err)
 	le.db.Log.QueryTiming(ctx, "Query", query, args, -1, time.Since(start), err)
@@ -98,6 +111,10 @@ func (le *LoggingExecable) QueryRowContext(ctx context.Context, query string, ar
 }
 
 func (le *LoggingExecable) beginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error) {
+	if err := sem.Acquire(ctx, 1); err != nil {
+		return nil, err
+	}
+	defer sem.Release(1)
 	txBeginner, ok := le.UnderlyingExecable.(UnderlyingExecutableWithTx)
 	if !ok {
 		return nil, fmt.Errorf("can't start transaction with a %T", le.UnderlyingExecable)
@@ -167,6 +184,10 @@ type LoggingTxn struct {
 
 func (lt *LoggingTxn) Commit() error {
 	start := time.Now()
+	if err := sem.Acquire(lt.ctx, 1); err != nil {
+		return err
+	}
+	defer sem.Release(1)
 	err := lt.UnderlyingTx.Commit()
 	lt.EndTime = time.Now()
 	if !lt.noTotalLog {
@@ -178,6 +199,10 @@ func (lt *LoggingTxn) Commit() error {
 
 func (lt *LoggingTxn) Rollback() error {
 	start := time.Now()
+	if err := sem.Acquire(lt.ctx, 1); err != nil {
+		return err
+	}
+	defer sem.Release(1)
 	err := lt.UnderlyingTx.Rollback()
 	lt.EndTime = time.Now()
 	if !lt.noTotalLog {
@@ -223,6 +248,10 @@ func (lrs *LoggingRows) Err() error {
 }
 
 func (lrs *LoggingRows) Next() bool {
+	if err := sem.Acquire(lrs.ctx, 1); err != nil {
+		return false
+	}
+	defer sem.Release(1)
 	hasNext := lrs.rs.Next()
 
 	if !hasNext {
@@ -235,6 +264,10 @@ func (lrs *LoggingRows) Next() bool {
 }
 
 func (lrs *LoggingRows) NextResultSet() bool {
+	if err := sem.Acquire(lrs.ctx, 1); err != nil {
+		return false
+	}
+	defer sem.Release(1)
 	hasNext := lrs.rs.NextResultSet()
 
 	if !hasNext {
