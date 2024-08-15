@@ -160,7 +160,7 @@ func (l *Lexer) Next() (string, error) {
 		case CommentToken:
 			// skip comments
 		default:
-			return "", fmt.Errorf("Unknown token type: %v", token.tokenType)
+			return "", fmt.Errorf("unknown token type: %v", token.tokenType)
 		}
 	}
 }
@@ -387,7 +387,7 @@ func (t *Tokenizer) scanStream() (*Token, error) {
 			}
 		default:
 			{
-				return nil, fmt.Errorf("Unexpected state: %v", state)
+				return nil, fmt.Errorf("unexpected state: %v", state)
 			}
 		}
 	}

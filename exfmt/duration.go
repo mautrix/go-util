@@ -44,7 +44,7 @@ func Duration(d time.Duration) string {
 	d = appendDurationPart(d, Day, "day", &parts)
 	d = appendDurationPart(d, time.Hour, "hour", &parts)
 	d = appendDurationPart(d, time.Minute, "minute", &parts)
-	d = appendDurationPart(d, time.Second, "second", &parts)
+	_ = appendDurationPart(d, time.Second, "second", &parts)
 	if len(parts) > 2 {
 		parts[0] = strings.Join(parts[:len(parts)-1], ", ")
 		parts[1] = parts[len(parts)-1]

@@ -82,7 +82,7 @@ func makeBenchmarkData[T dbutil.Array](n int) []AbstractMassInsertable[T] {
 		case 0:
 			val = rand.Intn(1000)
 		case 1:
-			val = rand.Intn(1) == 0
+			val = rand.Intn(2) == 0
 		case 2:
 			val = time.Now().UnixMilli()
 		case 3:

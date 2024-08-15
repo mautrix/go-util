@@ -40,7 +40,6 @@ func ReadDataFile(url string, processor func(string)) {
 		}
 		processor(line)
 	}
-	return
 }
 
 // ReadDataFileList fetches a data file from a URL and converts lines into array items with the given function.
