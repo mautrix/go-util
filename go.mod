@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/mattn/go-sqlite3 v1.14.22
-	github.com/petermattis/goid v0.0.0-20240716203034-badd1c0974d6
+	github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/exp v0.0.0-20240808152545-0cdaa3abc0fa
