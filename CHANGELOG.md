@@ -1,8 +1,22 @@
-# unreleased
+# v0.7.0 (2024-08-16)
 
+* Bumped minimum Go version to 1.22.
 * *(curl)* Added `Parse` function to parse a curl command exported from browser
   devtools.
 * *(exfmt)* Moved `FormatCurl` to `curl` package.
+* *(exslices)* Added `DeduplicateUnsorted` utility for deduplicating items in a
+  list while preserving order.
+* *(exsync)* Deprecated `ReturnableOnce` in favor of the standard library's
+  [`sync.OnceValues`].
+* *(exsync)* Added `Event` which works similar to Python's [`asyncio.Event`].
+* *(confusable)* Added implementation of confusable detection from [UTS #39].
+* *(dbutil)* Added deadlock detection option which panics if a database call is
+  made without the appropriate transaction context in a goroutine which
+  previously entered a database transaction.
+
+[UTS #39]: https://www.unicode.org/reports/tr39/#Confusable_Detection
+[`sync.OnceValues`]: https://pkg.go.dev/sync#OnceValues
+[`asyncio.Event`]: https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event
 
 # v0.6.0 (2024-07-16)
 
