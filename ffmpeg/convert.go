@@ -53,6 +53,11 @@ func SetPath(path string) {
 // Returns: the path to the converted file.
 func ConvertPath(ctx context.Context, inputFile string, outputExtension string, inputArgs []string, outputArgs []string, removeInput bool) (string, error) {
 	outputFilename := strings.TrimSuffix(strings.TrimSuffix(inputFile, filepath.Ext(inputFile)), "*") + outputExtension
+	if removeInput {
+		defer func() {
+			_ = os.Remove(inputFile)
+		}()
+	}
 
 	args := make([]string, 0, len(ffmpegDefaultParams)+len(inputArgs)+2+len(outputArgs)+1)
 	args = append(args, ffmpegDefaultParams...)
@@ -69,10 +74,6 @@ func ConvertPath(ctx context.Context, inputFile string, outputExtension string, 
 	err := cmd.Run()
 	if err != nil {
 		return "", fmt.Errorf("ffmpeg error: %w", err)
-	}
-
-	if removeInput {
-		_ = os.Remove(inputFile)
 	}
 
 	return outputFilename, nil
