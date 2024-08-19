@@ -18,6 +18,14 @@ func Ptr[T any](val T) *T {
 	return &val
 }
 
+func NonZero[T comparable](val T) *T {
+	var zero T
+	if val == zero {
+		return nil
+	}
+	return &val
+}
+
 func Val[T any](ptr *T) (val T) {
 	if ptr != nil {
 		val = *ptr
