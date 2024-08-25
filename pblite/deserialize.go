@@ -166,9 +166,13 @@ func deserializeOne(val any, index int, ref protoreflect.Message, insideList pro
 		expectedKind = "string"
 		outputVal = protoreflect.ValueOfString(str)
 	case protoreflect.BoolKind:
-		boolean, ok = val.(bool)
-		expectedKind = "bool"
-		outputVal = protoreflect.ValueOfBool(boolean)
+		expectedKind = "bool or float"
+		var float float64
+		if boolean, ok = val.(bool); ok {
+			outputVal = protoreflect.ValueOfBool(boolean)
+		} else if float, ok = val.(float64); ok {
+			outputVal = protoreflect.ValueOfBool(float != 0)
+		}
 	default:
 		return outputVal, fmt.Errorf("unsupported field type %s in %s", fieldDescriptor.Kind(), fieldDescriptor.FullName())
 	}
