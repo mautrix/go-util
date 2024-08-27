@@ -9,9 +9,17 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
+var Functions = make(map[string]any)
+
 func init() {
 	sql.Register("litestream", &sqlite3.SQLiteDriver{
 		ConnectHook: func(conn *sqlite3.SQLiteConn) (err error) {
+			for name, fn := range Functions {
+				err = conn.RegisterFunc(name, fn, true)
+				if err != nil {
+					return
+				}
+			}
 			err = DoSetTrace(conn)
 			if err != nil {
 				return
@@ -40,6 +48,12 @@ func init() {
 
 	sql.Register("sqlite3-fk-wal", &sqlite3.SQLiteDriver{
 		ConnectHook: func(conn *sqlite3.SQLiteConn) (err error) {
+			for name, fn := range Functions {
+				err = conn.RegisterFunc(name, fn, true)
+				if err != nil {
+					return
+				}
+			}
 			err = DoSetTrace(conn)
 			if err != nil {
 				return
