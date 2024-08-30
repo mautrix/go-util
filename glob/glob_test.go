@@ -58,6 +58,18 @@ func TestCompile(t *testing.T) {
 	}
 }
 
+func BenchmarkCompile(b *testing.B) {
+	for _, test := range matchTests {
+		b.Run(test.pattern, func(b *testing.B) {
+			g := glob.Compile(test.pattern)
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				g.Match(test.input)
+			}
+		})
+	}
+}
+
 func FuzzCompile(f *testing.F) {
 	for _, test := range matchTests {
 		f.Add(test.input, test.pattern)

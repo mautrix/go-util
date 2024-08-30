@@ -35,6 +35,16 @@ func Compile(pattern string) Glob {
 	return g
 }
 
+// CompileWithImplicitContains is a wrapper for Compile which will replace exact matches with contains matches.
+// i.e. if the pattern has no wildcards, it will be treated as if it was surrounded in asterisks (`foo` -> `*foo*`).
+func CompileWithImplicitContains(pattern string) Glob {
+	g := Compile(pattern)
+	if _, isExact := g.(ExactGlob); isExact {
+		return ContainsGlob(pattern)
+	}
+	return g
+}
+
 // CompileSimple compiles a glob pattern into one of the non-regex forms.
 //
 // If the pattern can't be compiled into a simple form, it returns nil.
