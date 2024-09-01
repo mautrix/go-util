@@ -109,3 +109,13 @@ func (s *Set[T]) ReplaceAll(newSet *Set[T]) {
 	}
 	s.l.Unlock()
 }
+
+func (s *Set[T]) Size() int {
+	if s == nil {
+		return 0
+	}
+	s.l.RLock()
+	size := len(s.m)
+	s.l.RUnlock()
+	return size
+}
