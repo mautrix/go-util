@@ -119,3 +119,18 @@ func (s *Set[T]) Size() int {
 	s.l.RUnlock()
 	return size
 }
+
+func (s *Set[T]) AsList() []T {
+	if s == nil {
+		return nil
+	}
+	s.l.RLock()
+	list := make([]T, len(s.m))
+	i := 0
+	for item := range s.m {
+		list[i] = item
+		i++
+	}
+	s.l.RUnlock()
+	return list
+}
