@@ -96,6 +96,7 @@ func TestAdd(t *testing.T) {
 	assert.Equal(t, "\U0001f44d\ufe0f", variationselector.Add("\U0001f44d\ufe0f"))
 	assert.Equal(t, "4\ufe0f\u20e3", variationselector.Add("4\u20e3"))
 	assert.Equal(t, "4\ufe0f\u20e3", variationselector.Add("4\ufe0f\u20e3"))
+	assert.Equal(t, "4", variationselector.Add("4"))
 	assert.Equal(t, "\U0001f914", variationselector.Add("\U0001f914"))
 	assert.Equal(t, "\U0001f408\u200d\u2b1b", variationselector.Add("\U0001f408\u200d\u2b1b"))
 	assert.Equal(t, "\u2122\ufe0f", variationselector.Add("\u2122"))
@@ -107,6 +108,7 @@ func TestFullyQualify(t *testing.T) {
 	assert.Equal(t, "\U0001f44d", variationselector.FullyQualify("\U0001f44d\ufe0f"))
 	assert.Equal(t, "4\ufe0f\u20e3", variationselector.FullyQualify("4\u20e3"))
 	assert.Equal(t, "4\ufe0f\u20e3", variationselector.FullyQualify("4\ufe0f\u20e3"))
+	assert.Equal(t, "4", variationselector.FullyQualify("4"))
 	assert.Equal(t, "\U0001f914", variationselector.FullyQualify("\U0001f914"))
 	assert.Equal(t, "\u263a\ufe0f", variationselector.FullyQualify("\u263a"))
 	assert.Equal(t, "\u263a\ufe0f", variationselector.FullyQualify("\u263a"))
@@ -122,6 +124,7 @@ func TestRemove(t *testing.T) {
 	assert.Equal(t, "\U0001f44d", variationselector.Remove("\U0001f44d\ufe0f"))
 	assert.Equal(t, "4\u20e3", variationselector.Remove("4\u20e3"))
 	assert.Equal(t, "4\u20e3", variationselector.Remove("4\ufe0f\u20e3"))
+	assert.Equal(t, "4", variationselector.Remove("4"))
 	assert.Equal(t, "\U0001f914", variationselector.Remove("\U0001f914"))
 }
 
