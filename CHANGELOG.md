@@ -1,3 +1,17 @@
+# v0.8.0 (unreleased)
+
+* *(dbutil)* Changed litestream package to allow importing as no-op even when
+  cgo is disabled.
+* *(ptr)* Added `NonZero` and `NonDefault` helpers to get nil if the value is
+  zero/default or a pointer to the value otherwise.
+* *(ffmpeg)* Fixed files not being removed if conversion fails.
+* *(pblite)* Added pblite (protobuf as JSON arrays) en/decoder.
+* *(exhttp)* Added utilities for JSON responses, CORS headers and other things.
+* *(glob)* Added utility for parsing Matrix globs into efficient matchers, with
+  a fallback to regex for more complicated patterns.
+* *(exsync)* Added `Size`, `Pop`, `ReplaceAll` and `AsList` for `Set`.
+* *(variationselector)* Fixed plain numbers being emojified by `Add`.
+
 # v0.7.0 (2024-08-16)
 
 * Bumped minimum Go version to 1.22.
