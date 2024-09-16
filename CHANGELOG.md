@@ -1,4 +1,4 @@
-# v0.8.0 (unreleased)
+# v0.8.0 (2024-09-16)
 
 * *(dbutil)* Changed litestream package to allow importing as no-op even when
   cgo is disabled.
