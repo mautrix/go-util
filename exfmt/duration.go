@@ -16,35 +16,67 @@ import (
 var Day = 24 * time.Hour
 var Week = 7 * Day
 
-func pluralize(value int, unit string) string {
-	if value == 1 {
-		return "1 " + unit
+type Pluralizer func(int) string
+
+func Pluralizable(unit string) Pluralizer {
+	return func(value int) string {
+		if value == 1 {
+			return "1 " + unit
+		}
+		return fmt.Sprintf("%d %ss", value, unit)
 	}
-	return fmt.Sprintf("%d %ss", value, unit)
 }
 
-func appendDurationPart(time, unit time.Duration, name string, parts *[]string) (remainder time.Duration) {
+func NonPluralizable(unit string) Pluralizer {
+	return func(value int) string {
+		return fmt.Sprintf("%d %s", value, unit)
+	}
+}
+
+func Duration(d time.Duration) string {
+	return DurationCustom(d, nil, Week, Day, time.Hour, time.Minute, time.Second)
+}
+
+func appendDurationPart(time, unit time.Duration, name Pluralizer, parts *[]string) (remainder time.Duration) {
 	if time < unit {
 		return time
 	}
 	value := int(time / unit)
 	remainder = time % unit
-	*parts = append(*parts, pluralize(value, name))
+	*parts = append(*parts, name(value))
 	return
 }
 
-func Duration(d time.Duration) string {
+var DefaultDurationUnitNames = map[time.Duration]Pluralizer{
+	Week:             Pluralizable("week"),
+	Day:              Pluralizable("day"),
+	time.Hour:        Pluralizable("hour"),
+	time.Minute:      Pluralizable("minute"),
+	time.Second:      Pluralizable("second"),
+	time.Millisecond: NonPluralizable("ms"),
+	time.Microsecond: NonPluralizable("µs"),
+	time.Nanosecond:  NonPluralizable("ns"),
+}
+
+func DurationCustom(d time.Duration, names map[time.Duration]Pluralizer, units ...time.Duration) string {
 	if d < 0 {
 		panic(errors.New("exfmt.Duration: negative duration"))
-	} else if d < time.Second {
+	} else if len(units) == 0 {
+		panic(errors.New("exfmt.Duration: no units provided"))
+	} else if d < units[len(units)-1] {
 		return "now"
 	}
+	if names == nil {
+		names = DefaultDurationUnitNames
+	}
 	parts := make([]string, 0, 2)
-	d = appendDurationPart(d, Week, "week", &parts)
-	d = appendDurationPart(d, Day, "day", &parts)
-	d = appendDurationPart(d, time.Hour, "hour", &parts)
-	d = appendDurationPart(d, time.Minute, "minute", &parts)
-	_ = appendDurationPart(d, time.Second, "second", &parts)
+	for _, unit := range units {
+		name, ok := names[unit]
+		if !ok {
+			panic(fmt.Errorf("exfmt.Duration: no name for unit %q", unit))
+		}
+		d = appendDurationPart(d, unit, name, &parts)
+	}
 	if len(parts) > 2 {
 		parts[0] = strings.Join(parts[:len(parts)-1], ", ")
 		parts[1] = parts[len(parts)-1]
