@@ -15,3 +15,10 @@ func ApplyMiddleware(router http.Handler, middlewares ...Middleware) http.Handle
 	}
 	return router
 }
+
+// StripPrefix is a wrapper for [http.StripPrefix] is compatible with the middleware pattern.
+func StripPrefix(prefix string) Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.StripPrefix(prefix, next)
+	}
+}
