@@ -1,3 +1,16 @@
+# v0.8.1 (2024-10-16)
+
+* **Breaking change *(lottie)*** Improved interface to take a destination file
+  name rather than returning bytes. The method was internally using a file
+  anyway, so forcing reading it into memory was a waste.
+* *(ffmpeg)* Added `ConvertPathWithDestination` to specify destination file
+  manually.
+* *(exhttp)* Added utility for applying middlewares to any HTTP handler.
+* *(exfmt)* Made duration formatting more customizable.
+* *(dbutil)* Changed table existence checks during schema upgrades to properly
+  return errors instead of panicking.
+* *(dbutil)* Fixed `sqlite-fkey-off` transaction mode.
+
 # v0.8.0 (2024-09-16)
 
 * *(dbutil)* Changed litestream package to allow importing as no-op even when
