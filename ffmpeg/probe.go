@@ -7,6 +7,7 @@
 package ffmpeg
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -105,25 +106,22 @@ type ProbeResult struct {
 	Format  *Format   `json:"format"`
 }
 
-var ffprobeDefaultParams = []string{"-print_format", "json", "-show_format", "-show_streams"}
+var ffprobeDefaultParams = []string{"-hide_banner", "-loglevel", "warning", "-print_format", "json", "-show_format", "-show_streams"}
 
 func Probe(ctx context.Context, path string) (*ProbeResult, error) {
 	ctxLog := zerolog.Ctx(ctx).With().Str("command", "ffmpeg").Logger()
 	logWriter := exzerolog.NewLogWriter(ctxLog).WithLevel(zerolog.WarnLevel)
 	cmd := exec.CommandContext(ctx, ffprobePath, append(ffprobeDefaultParams, path)...)
+	var stdout bytes.Buffer
 	cmd.Stderr = logWriter
-	output, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, fmt.Errorf("failed to probe file: %w", err)
-	}
-	defer output.Close()
-	err = cmd.Run()
+	cmd.Stdout = &stdout
+	err := cmd.Run()
 	if err != nil {
 		return nil, fmt.Errorf("failed to run ffprobe: %w", err)
 	}
 
 	var result ProbeResult
-	err = json.NewDecoder(output).Decode(&result)
+	err = json.NewDecoder(&stdout).Decode(&result)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse ffmpeg output: %w", err)
 	}
