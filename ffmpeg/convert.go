@@ -22,10 +22,11 @@ import (
 
 var ffmpegDefaultParams = []string{"-hide_banner", "-loglevel", "warning"}
 
-var ffmpegPath string
+var ffmpegPath, ffprobePath string
 
 func init() {
 	ffmpegPath, _ = exec.LookPath("ffmpeg")
+	ffprobePath, _ = exec.LookPath("ffprobe")
 }
 
 // Supported returns whether ffmpeg is available on the system.
@@ -39,6 +40,15 @@ func Supported() bool {
 // SetPath overrides the path to the ffmpeg binary.
 func SetPath(path string) {
 	ffmpegPath = path
+}
+
+func ProbeSupported() bool {
+	return ffprobePath != ""
+}
+
+// SetPath overrides the path to the ffprobe binary.
+func SetProbePath(path string) {
+	ffprobePath = path
 }
 
 // ConvertPath converts a media file on the disk using ffmpeg and auto-generates the output file name.
