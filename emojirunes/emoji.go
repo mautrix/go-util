@@ -26,6 +26,9 @@ func isNumberEmoji(r rune, s string, i int) bool {
 // IsOnlyEmojis reports whether s is a string containing only emoji runes as defined by [Is].
 // Additionally, it accepts numbers (0-9) followed by variation selector 16 (\uFE0F) as emojis.
 func IsOnlyEmojis(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
 	for i, r := range s {
 		if !Is(r) && !isNumberEmoji(r, s, i) {
 			return false
