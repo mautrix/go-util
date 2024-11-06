@@ -1,3 +1,10 @@
+# unreleased
+
+* *(ffmpeg)* Added wrapper functions for `ffprobe`.
+* *(emojirunes)* Added method to check if a string is only emojis.
+* *(unicodeurls)* Updated data sheets used by emojirunes, variationselectors
+  and other packages to Unicode 16.
+
 # v0.8.1 (2024-10-16)
 
 * **Breaking change *(lottie)*** Improved interface to take a destination file
