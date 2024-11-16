@@ -22,10 +22,11 @@ import (
 
 var ffmpegDefaultParams = []string{"-hide_banner", "-loglevel", "warning"}
 
-var ffmpegPath string
+var ffmpegPath, ffprobePath string
 
 func init() {
 	ffmpegPath, _ = exec.LookPath("ffmpeg")
+	ffprobePath, _ = exec.LookPath("ffprobe")
 }
 
 // Supported returns whether ffmpeg is available on the system.
@@ -41,7 +42,16 @@ func SetPath(path string) {
 	ffmpegPath = path
 }
 
-// ConvertPath converts a media file on the disk using ffmpeg.
+func ProbeSupported() bool {
+	return ffprobePath != ""
+}
+
+// SetPath overrides the path to the ffprobe binary.
+func SetProbePath(path string) {
+	ffprobePath = path
+}
+
+// ConvertPath converts a media file on the disk using ffmpeg and auto-generates the output file name.
 //
 // Args:
 // * inputFile: The full path to the file.
@@ -53,13 +63,30 @@ func SetPath(path string) {
 // Returns: the path to the converted file.
 func ConvertPath(ctx context.Context, inputFile string, outputExtension string, inputArgs []string, outputArgs []string, removeInput bool) (string, error) {
 	outputFilename := strings.TrimSuffix(strings.TrimSuffix(inputFile, filepath.Ext(inputFile)), "*") + outputExtension
+	return outputFilename, ConvertPathWithDestination(ctx, inputFile, outputFilename, inputArgs, outputArgs, removeInput)
+}
+
+// ConvertPathWithDestination converts a media file on the disk using ffmpeg and saves the result to the provided file name.
+//
+// Args:
+// * inputFile: The full path to the file.
+// * outputFile: The full path to the output file. Must include the appropriate extension so ffmpeg knows what to convert to.
+// * inputArgs: Arguments to tell ffmpeg how to parse the input file.
+// * outputArgs: Arguments to tell ffmpeg how to convert the file to reach the wanted output.
+// * removeInput: Whether the input file should be removed after converting.
+func ConvertPathWithDestination(ctx context.Context, inputFile string, outputFile string, inputArgs []string, outputArgs []string, removeInput bool) error {
+	if removeInput {
+		defer func() {
+			_ = os.Remove(inputFile)
+		}()
+	}
 
 	args := make([]string, 0, len(ffmpegDefaultParams)+len(inputArgs)+2+len(outputArgs)+1)
 	args = append(args, ffmpegDefaultParams...)
 	args = append(args, inputArgs...)
 	args = append(args, "-i", inputFile)
 	args = append(args, outputArgs...)
-	args = append(args, outputFilename)
+	args = append(args, outputFile)
 
 	cmd := exec.CommandContext(ctx, ffmpegPath, args...)
 	ctxLog := zerolog.Ctx(ctx).With().Str("command", "ffmpeg").Logger()
@@ -68,14 +95,11 @@ func ConvertPath(ctx context.Context, inputFile string, outputExtension string, 
 	cmd.Stderr = logWriter
 	err := cmd.Run()
 	if err != nil {
-		return "", fmt.Errorf("ffmpeg error: %w", err)
+		_ = os.Remove(outputFile)
+		return fmt.Errorf("ffmpeg error: %w", err)
 	}
 
-	if removeInput {
-		_ = os.Remove(inputFile)
-	}
-
-	return outputFilename, nil
+	return nil
 }
 
 // ConvertBytes converts media data using ffmpeg.

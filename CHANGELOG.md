@@ -1,8 +1,56 @@
 # unreleased
 
+* *(ffmpeg)* Added wrapper functions for `ffprobe`.
+* *(emojirunes)* Added method to check if a string is only emojis.
+* *(unicodeurls)* Updated data sheets used by emojirunes, variationselectors
+  and other packages to Unicode 16.
+
+# v0.8.1 (2024-10-16)
+
+* **Breaking change *(lottie)*** Improved interface to take a destination file
+  name rather than returning bytes. The method was internally using a file
+  anyway, so forcing reading it into memory was a waste.
+* *(ffmpeg)* Added `ConvertPathWithDestination` to specify destination file
+  manually.
+* *(exhttp)* Added utility for applying middlewares to any HTTP handler.
+* *(exfmt)* Made duration formatting more customizable.
+* *(dbutil)* Changed table existence checks during schema upgrades to properly
+  return errors instead of panicking.
+* *(dbutil)* Fixed `sqlite-fkey-off` transaction mode.
+
+# v0.8.0 (2024-09-16)
+
+* *(dbutil)* Changed litestream package to allow importing as no-op even when
+  cgo is disabled.
+* *(ptr)* Added `NonZero` and `NonDefault` helpers to get nil if the value is
+  zero/default or a pointer to the value otherwise.
+* *(ffmpeg)* Fixed files not being removed if conversion fails.
+* *(pblite)* Added pblite (protobuf as JSON arrays) en/decoder.
+* *(exhttp)* Added utilities for JSON responses, CORS headers and other things.
+* *(glob)* Added utility for parsing Matrix globs into efficient matchers, with
+  a fallback to regex for more complicated patterns.
+* *(exsync)* Added `Size`, `Pop`, `ReplaceAll` and `AsList` for `Set`.
+* *(variationselector)* Fixed plain numbers being emojified by `Add`.
+
+# v0.7.0 (2024-08-16)
+
+* Bumped minimum Go version to 1.22.
 * *(curl)* Added `Parse` function to parse a curl command exported from browser
   devtools.
 * *(exfmt)* Moved `FormatCurl` to `curl` package.
+* *(exslices)* Added `DeduplicateUnsorted` utility for deduplicating items in a
+  list while preserving order.
+* *(exsync)* Deprecated `ReturnableOnce` in favor of the standard library's
+  [`sync.OnceValues`].
+* *(exsync)* Added `Event` which works similar to Python's [`asyncio.Event`].
+* *(confusable)* Added implementation of confusable detection from [UTS #39].
+* *(dbutil)* Added deadlock detection option which panics if a database call is
+  made without the appropriate transaction context in a goroutine which
+  previously entered a database transaction.
+
+[UTS #39]: https://www.unicode.org/reports/tr39/#Confusable_Detection
+[`sync.OnceValues`]: https://pkg.go.dev/sync#OnceValues
+[`asyncio.Event`]: https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event
 
 # v0.6.0 (2024-07-16)
 

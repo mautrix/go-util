@@ -34,7 +34,7 @@ func main() {
 	fullyQualifiedSequences := readEmojiLines(unicodeurls.EmojiTest, "fully-qualified")
 	var extraVariations []string
 	for _, seq := range variationSequences {
-		if !slices.Contains(fullyQualifiedSequences, seq) {
+		if !slices.Contains(fullyQualifiedSequences, seq) && !strings.HasPrefix(seq, "00") {
 			unifiedWithoutVS := strings.Split(seq, " ")[0]
 			extraVariations = append(extraVariations, fmt.Sprintf(`\x{%s}`, unifiedWithoutVS))
 		}

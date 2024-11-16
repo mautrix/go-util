@@ -19,7 +19,7 @@ import (
 	"go.mau.fi/util/exerrors"
 )
 
-const UnicodeVersion = "15.1"
+const UnicodeVersion = "16.0"
 
 const EmojiVariationSequences = "https://www.unicode.org/Public/" + UnicodeVersion + ".0/ucd/emoji/emoji-variation-sequences.txt"
 const EmojiTest = "https://unicode.org/Public/emoji/" + UnicodeVersion + "/emoji-test.txt"
@@ -40,7 +40,6 @@ func ReadDataFile(url string, processor func(string)) {
 		}
 		processor(line)
 	}
-	return
 }
 
 // ReadDataFileList fetches a data file from a URL and converts lines into array items with the given function.

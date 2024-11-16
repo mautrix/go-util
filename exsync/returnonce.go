@@ -9,6 +9,8 @@ package exsync
 import "sync"
 
 // ReturnableOnce is a wrapper for sync.Once that can return a value
+//
+// Deprecated: Use [sync.OnceValues] instead.
 type ReturnableOnce[Value any] struct {
 	once   sync.Once
 	output Value

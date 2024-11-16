@@ -32,10 +32,10 @@ func NewRingBuffer[Key comparable, Value any](size int) *RingBuffer[Key, Value] 
 
 var (
 	// StopIteration can be returned by the RingBuffer.Iter or MapRingBuffer callbacks to stop iteration immediately.
-	StopIteration = errors.New("stop iteration")
+	StopIteration = errors.New("stop iteration") //lint:ignore ST1012 not an error
 
 	// SkipItem can be returned by the MapRingBuffer callback to skip adding a specific item.
-	SkipItem = errors.New("skip item")
+	SkipItem = errors.New("skip item") //lint:ignore ST1012 not an error
 )
 
 func (rb *RingBuffer[Key, Value]) unlockedIter(callback func(key Key, val Value) error) error {

@@ -59,3 +59,9 @@ func TestFormatDuration_PanicNegative(t *testing.T) {
 	assert.Panics(t, func() { exfmt.Duration(-time.Second) })
 	assert.Panics(t, func() { exfmt.Duration(-exfmt.Week) })
 }
+
+func TestFormatDuration_Custom(t *testing.T) {
+	assert.Equal(t, "90 days", exfmt.DurationCustom(90*exfmt.Day, nil, exfmt.Day))
+	assert.Equal(t, "2160 hours", exfmt.DurationCustom(90*exfmt.Day, nil, time.Hour))
+	assert.Equal(t, "2160 hours", exfmt.DurationCustom(90*exfmt.Day+59*time.Minute, nil, time.Hour))
+}
