@@ -1,9 +1,10 @@
-# unreleased
+# v0.8.2 (2024-11-16)
 
 * *(ffmpeg)* Added wrapper functions for `ffprobe`.
 * *(emojirunes)* Added method to check if a string is only emojis.
 * *(unicodeurls)* Updated data sheets used by emojirunes, variationselectors
   and other packages to Unicode 16.
+* *(dbutil)* Added support for mass inserts with no static parameters.
 
 # v0.8.1 (2024-10-16)
 
