@@ -10,7 +10,7 @@ require (
 	github.com/petermattis/goid v0.0.0-20241211131331-93ee7e083c43
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/exp v0.0.0-20241210194714-1829a127f884
+	golang.org/x/exp v0.0.0-20241215155358-4a5509556b9e
 	golang.org/x/sys v0.28.0
 	golang.org/x/text v0.21.0
 	google.golang.org/protobuf v1.35.2
@@ -22,5 +22,5 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/rs/xid v1.5.0 // indirect
+	github.com/rs/xid v1.6.0 // indirect
 )
