@@ -1,3 +1,8 @@
+# v0.8.3 (2024-12-16)
+
+* *(exhttp)* Added global flag for disabling automatic CORS headers when using
+  JSON response helper functions.
+
 # v0.8.2 (2024-11-16)
 
 * *(ffmpeg)* Added wrapper functions for `ffprobe`.
