@@ -10,10 +10,10 @@ require (
 	github.com/petermattis/goid v0.0.0-20241211131331-93ee7e083c43
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/exp v0.0.0-20241215155358-4a5509556b9e
-	golang.org/x/sys v0.28.0
+	golang.org/x/exp v0.0.0-20250103183323-7d7fa50e5329
+	golang.org/x/sys v0.29.0
 	golang.org/x/text v0.21.0
-	google.golang.org/protobuf v1.35.2
+	google.golang.org/protobuf v1.36.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
