@@ -34,6 +34,10 @@ type Seconds struct {
 	time.Duration
 }
 
+func S(dur time.Duration) Seconds {
+	return Seconds{Duration: dur}
+}
+
 func (s Seconds) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.FormatInt(int64(s.Seconds()), 10)), nil
 }
@@ -52,6 +56,10 @@ func (s *Seconds) Scan(src interface{}) error {
 
 type Milliseconds struct {
 	time.Duration
+}
+
+func MS(dur time.Duration) Milliseconds {
+	return Milliseconds{Duration: dur}
 }
 
 func (s Milliseconds) MarshalJSON() ([]byte, error) {
