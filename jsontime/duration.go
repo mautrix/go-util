@@ -38,6 +38,10 @@ func S(dur time.Duration) Seconds {
 	return Seconds{Duration: dur}
 }
 
+func SInt(dur int) Seconds {
+	return Seconds{Duration: time.Duration(dur) * time.Second}
+}
+
 func (s Seconds) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.FormatInt(int64(s.Seconds()), 10)), nil
 }
@@ -54,12 +58,23 @@ func (s *Seconds) Scan(src interface{}) error {
 	return anyIntegerToDuration(src, time.Second, &s.Duration)
 }
 
+func (s *Seconds) Get() time.Duration {
+	if s == nil {
+		return 0
+	}
+	return s.Duration
+}
+
 type Milliseconds struct {
 	time.Duration
 }
 
 func MS(dur time.Duration) Milliseconds {
 	return Milliseconds{Duration: dur}
+}
+
+func MSInt(dur int64) Milliseconds {
+	return Milliseconds{Duration: time.Duration(dur) * time.Millisecond}
 }
 
 func (s Milliseconds) MarshalJSON() ([]byte, error) {
@@ -76,6 +91,13 @@ func (s *Milliseconds) UnmarshalJSON(data []byte) error {
 
 func (s *Milliseconds) Scan(src interface{}) error {
 	return anyIntegerToDuration(src, time.Millisecond, &s.Duration)
+}
+
+func (s *Milliseconds) Get() time.Duration {
+	if s == nil {
+		return 0
+	}
+	return s.Duration
 }
 
 type Microseconds struct {
@@ -98,6 +120,13 @@ func (s *Microseconds) Scan(src interface{}) error {
 	return anyIntegerToDuration(src, time.Microsecond, &s.Duration)
 }
 
+func (s *Microseconds) Get() time.Duration {
+	if s == nil {
+		return 0
+	}
+	return s.Duration
+}
+
 type Nanoseconds struct {
 	time.Duration
 }
@@ -116,4 +145,11 @@ func (s *Nanoseconds) UnmarshalJSON(data []byte) error {
 
 func (s *Nanoseconds) Scan(src interface{}) error {
 	return anyIntegerToDuration(src, time.Nanosecond, &s.Duration)
+}
+
+func (s *Nanoseconds) Get() time.Duration {
+	if s == nil {
+		return 0
+	}
+	return s.Duration
 }
