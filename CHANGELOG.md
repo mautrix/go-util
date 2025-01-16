@@ -1,3 +1,10 @@
+# v0.8.4 (2025-01-16)
+
+* *(dbutil)* Added option to retry transaction begin calls.
+* *(dbutil)* Added `QueryHelper.QueryManyIter` function to get a `RowIter`
+  instead of pre-reading all rows into a list.
+* *(jsontime)* Added utilities for durations.
+
 # v0.8.3 (2024-12-16)
 
 * *(exhttp)* Added global flag for disabling automatic CORS headers when using
