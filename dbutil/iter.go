@@ -58,6 +58,27 @@ type rowIterImpl[T any] struct {
 }
 
 // NewRowIter creates a new RowIter from the given Rows and scanner function.
+//
+// Deprecated: use NewRowIterWithError instead to avoid an unnecessary separate error check on the Query result.
+//
+// Instead of
+//
+//	rows, err := db.Query(...)
+//	if err != nil {
+//		...
+//	}
+//	return dbutil.NewRowIter(rows, convertFn)
+//
+// you should use
+//
+//	rows, err := db.Query(...)
+//	return dbutil.NewRowIterWithError(rows, convertFn, err)
+//
+// or alternatively pre-wrap the convertFn
+//
+//	var converter = dbutil.ConvertRowFn(convertFn)
+//	...
+//	return converter.NewRowIter(db.Query(...))
 func NewRowIter[T any](rows Rows, convertFn ConvertRowFn[T]) RowIter[T] {
 	return newRowIterWithError(rows, convertFn, nil)
 }
