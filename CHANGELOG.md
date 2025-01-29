@@ -1,3 +1,12 @@
+# v0.8.5 (unreleased)
+
+* *(dbutil)* Deprecated `NewRowIter` as it encourages bad error handling.
+  `NewRowIterWithError` and `ConvertRowFn[T].NewRowIter` are recommended instead,
+  as they support bundling an error inside the iterator.
+* *(exslices)* Added utility to map and filter a slice in one go.
+* *(confusable)* Fixed skeleton incorrectly including replacement characters
+  for some input strings.
+
 # v0.8.4 (2025-01-16)
 
 * *(dbutil)* Added option to retry transaction begin calls.
