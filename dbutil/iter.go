@@ -63,22 +63,39 @@ type rowIterImpl[T any] struct {
 //
 // Instead of
 //
-//	rows, err := db.Query(...)
-//	if err != nil {
-//		...
+//	func DoQuery(...) (dbutil.RowIter, error) {
+//		rows, err := db.Query(...)
+//		if err != nil {
+//			return nil, err
+//		}
+//		return dbutil.NewRowIter(rows, convertFn), nil
 //	}
-//	return dbutil.NewRowIter(rows, convertFn)
 //
 // you should use
 //
-//	rows, err := db.Query(...)
-//	return dbutil.NewRowIterWithError(rows, convertFn, err)
+//	func DoQuery(...) dbutil.RowIter {
+//		rows, err := db.Query(...)
+//		return dbutil.NewRowIterWithError(rows, convertFn, err)
+//	}
 //
 // or alternatively pre-wrap the convertFn
 //
 //	var converter = dbutil.ConvertRowFn(convertFn)
-//	...
-//	return converter.NewRowIter(db.Query(...))
+//	func DoQuery(...) dbutil.RowIter {
+//		return converter.NewRowIter(db.Query(...))
+//	}
+//
+// Embedding the error in the iterator allows the caller to do only one error check instead of two:
+//
+//	iter, err := DoQuery(...)
+//	if err != nil { ... }
+//	result, err := iter.Iter(...)
+//	if err != nil { ... }
+//
+// vs
+//
+//	result, err := DoQuery(...).Iter(...)
+//	if err != nil { ... }
 func NewRowIter[T any](rows Rows, convertFn ConvertRowFn[T]) RowIter[T] {
 	return newRowIterWithError(rows, convertFn, nil)
 }
