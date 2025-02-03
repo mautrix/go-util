@@ -6,6 +6,8 @@
 * *(exslices)* Added utility to map and filter a slice in one go.
 * *(confusable)* Fixed skeleton incorrectly including replacement characters
   for some input strings.
+* *(exbytes)* Added utility that implements `io.Writer` for byte slices without
+  resizing.
 
 # v0.8.4 (2025-01-16)
 
