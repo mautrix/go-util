@@ -1,5 +1,6 @@
-# v0.8.5 (unreleased)
+# v0.8.5 (2025-02-16)
 
+* Bumped minimum Go version to 1.23.
 * *(dbutil)* Deprecated `NewRowIter` as it encourages bad error handling.
   `NewRowIterWithError` and `ConvertRowFn[T].NewRowIter` are recommended instead,
   as they support bundling an error inside the iterator.
@@ -8,6 +9,8 @@
   for some input strings.
 * *(exbytes)* Added utility that implements `io.Writer` for byte slices without
   resizing.
+* *(glob)* Added `ToRegexPattern` helper which converts a glob to a regex
+  without compiling it.
 
 # v0.8.4 (2025-01-16)
 
