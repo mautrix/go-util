@@ -1,3 +1,29 @@
+# v0.8.5 (2025-02-16)
+
+* Bumped minimum Go version to 1.23.
+* *(dbutil)* Deprecated `NewRowIter` as it encourages bad error handling.
+  `NewRowIterWithError` and `ConvertRowFn[T].NewRowIter` are recommended instead,
+  as they support bundling an error inside the iterator.
+* *(exslices)* Added utility to map and filter a slice in one go.
+* *(confusable)* Fixed skeleton incorrectly including replacement characters
+  for some input strings.
+* *(exbytes)* Added utility that implements `io.Writer` for byte slices without
+  resizing.
+* *(glob)* Added `ToRegexPattern` helper which converts a glob to a regex
+  without compiling it.
+
+# v0.8.4 (2025-01-16)
+
+* *(dbutil)* Added option to retry transaction begin calls.
+* *(dbutil)* Added `QueryHelper.QueryManyIter` function to get a `RowIter`
+  instead of pre-reading all rows into a list.
+* *(jsontime)* Added utilities for durations.
+
+# v0.8.3 (2024-12-16)
+
+* *(exhttp)* Added global flag for disabling automatic CORS headers when using
+  JSON response helper functions.
+
 # v0.8.2 (2024-11-16)
 
 * *(ffmpeg)* Added wrapper functions for `ffprobe`.

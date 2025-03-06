@@ -1,19 +1,19 @@
 module go.mau.fi/util
 
-go 1.22.0
+go 1.23.0
 
-toolchain go1.23.3
+toolchain go1.24.0
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/mattn/go-sqlite3 v1.14.24
-	github.com/petermattis/goid v0.0.0-20241025130422-66cb2e6d7274
+	github.com/petermattis/goid v0.0.0-20250211185408-f2b9d978cd7a
 	github.com/rs/zerolog v1.33.0
-	github.com/stretchr/testify v1.9.0
-	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f
-	golang.org/x/sys v0.27.0
-	golang.org/x/text v0.20.0
-	google.golang.org/protobuf v1.35.2
+	github.com/stretchr/testify v1.10.0
+	golang.org/x/exp v0.0.0-20250215185904-eff6e970281f
+	golang.org/x/sys v0.30.0
+	golang.org/x/text v0.22.0
+	google.golang.org/protobuf v1.36.5
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -22,5 +22,5 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/rs/xid v1.5.0 // indirect
+	github.com/rs/xid v1.6.0 // indirect
 )

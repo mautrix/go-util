@@ -73,6 +73,9 @@ func Parse(curl string) (*Parsed, error) {
 		case "-X":
 			i++
 			req.Method = parts[i]
+		case "-b":
+			i++
+			req.Header.Add("Cookie", parts[i])
 		}
 	}
 	req.Body = io.NopCloser(strings.NewReader(body))
