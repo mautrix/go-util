@@ -1,3 +1,10 @@
+# v0.8.6 (2025-03-16)
+
+* *(curl)* Added support for parsing cookies set using the `-b` flag, which
+  recent versions of Chrome use.
+* *(exstrings)* Added functions for hashing and constant time comparing strings
+  without copying to a byte array.
+
 # v0.8.5 (2025-02-16)
 
 * Bumped minimum Go version to 1.23.
