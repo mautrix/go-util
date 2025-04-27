@@ -9,6 +9,7 @@ package exstrings
 import (
 	"crypto/sha256"
 	"crypto/subtle"
+	"strings"
 	"unsafe"
 )
 
@@ -29,4 +30,25 @@ func SHA256(str string) [32]byte {
 // Note that ConstantTimeCompare is not constant time if the strings are of different length.
 func ConstantTimeEqual(a, b string) bool {
 	return subtle.ConstantTimeCompare(UnsafeBytes(a), UnsafeBytes(b)) == 1
+}
+
+func LongestSequenceOf(a string, b rune) int {
+	// IndexRune has some optimizations, so use it to find the starting point
+	firstIndex := strings.IndexRune(a, b)
+	if firstIndex == -1 {
+		return 0
+	}
+	count := 0
+	maxCount := 0
+	for _, r := range a[firstIndex:] {
+		if r == b {
+			count++
+			if count > maxCount {
+				maxCount = count
+			}
+		} else {
+			count = 0
+		}
+	}
+	return maxCount
 }
