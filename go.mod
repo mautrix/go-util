@@ -2,18 +2,18 @@ module go.mau.fi/util
 
 go 1.23.0
 
-toolchain go1.24.1
+toolchain go1.24.3
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/mattn/go-sqlite3 v1.14.24
-	github.com/petermattis/goid v0.0.0-20250303134427-723919f7f203
-	github.com/rs/zerolog v1.33.0
+	github.com/mattn/go-sqlite3 v1.14.28
+	github.com/petermattis/goid v0.0.0-20250508124226-395b08cebbdb
+	github.com/rs/zerolog v1.34.0
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
-	golang.org/x/sys v0.31.0
-	golang.org/x/text v0.23.0
-	google.golang.org/protobuf v1.36.5
+	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6
+	golang.org/x/sys v0.33.0
+	golang.org/x/text v0.25.0
+	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v3 v3.0.1
 )
 
