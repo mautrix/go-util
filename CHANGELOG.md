@@ -1,3 +1,14 @@
+# v0.8.7 (2025-05-16)
+
+* *(jsonbytes)* Added utility for url-safe base64 to complement the existing
+  standard unpadded base64 marshaling utility.
+* *(exstrings)* Added `LongestSequenceOf` to find the longest sequence of a
+  single character in a string.
+* *(requestlog)* Implemented `Flush` in `CountingResponseWriter` to fix flushing
+  HTTP response buffer when using request logging.
+* *(exhttp)* Added utility for checking if a given error is a network error or
+  an http2 stream error.
+
 # v0.8.6 (2025-03-16)
 
 * *(curl)* Added support for parsing cookies set using the `-b` flag, which
