@@ -32,6 +32,7 @@ func ConstantTimeEqual(a, b string) bool {
 	return subtle.ConstantTimeCompare(UnsafeBytes(a), UnsafeBytes(b)) == 1
 }
 
+// LongestSequenceOf returns the length of the longest contiguous sequence of a single rune in a string.
 func LongestSequenceOf(a string, b rune) int {
 	// IndexRune has some optimizations, so use it to find the starting point
 	firstIndex := strings.IndexRune(a, b)
@@ -48,6 +49,27 @@ func LongestSequenceOf(a string, b rune) int {
 			}
 		} else {
 			count = 0
+		}
+	}
+	return maxCount
+}
+
+// LongestSequenceOfFunc returns the length of the longest contiguous sequence of runes in a string.
+//
+// If the provided function returns zero or higher, the return value is added to the current count.
+// If the return value is negative, the count is reset to zero.
+func LongestSequenceOfFunc(a string, fn func(b rune) int) int {
+	count := 0
+	maxCount := 0
+	for _, r := range a {
+		val := fn(r)
+		if val < 0 {
+			count = 0
+		} else {
+			count += val
+			if count > maxCount {
+				maxCount = count
+			}
 		}
 	}
 	return maxCount
