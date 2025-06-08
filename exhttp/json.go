@@ -32,10 +32,5 @@ func WriteJSONData(w http.ResponseWriter, httpStatusCode int, data []byte) {
 }
 
 func WriteEmptyJSONResponse(w http.ResponseWriter, httpStatusCode int) {
-	if AutoAllowCORS {
-		AddCORSHeaders(w)
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(httpStatusCode)
-	_, _ = w.Write([]byte("{}"))
+	WriteJSONData(w, httpStatusCode, []byte("{}"))
 }
