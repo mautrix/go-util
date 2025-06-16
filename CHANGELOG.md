@@ -1,3 +1,9 @@
+# v0.8.8 (2025-06-16)
+
+* *(requestlog)* Added option to log `X-Forwarded-For` header value.
+* *(exstrings)* Added `LongestSequenceOfFunc` as a customizable version of
+  `LongestSequenceOf`
+
 # v0.8.7 (2025-05-16)
 
 * *(jsonbytes)* Added utility for url-safe base64 to complement the existing
