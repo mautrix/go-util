@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -13,7 +14,14 @@ import (
 const MaxRequestSizeLog = 4 * 1024
 const MaxStringRequestSizeLog = MaxRequestSizeLog / 2
 
-func AccessLogger(logOptions bool) func(http.Handler) http.Handler {
+type Options struct {
+	// Should OPTIONS requests be logged?
+	LogOptions bool
+	// Should remote_addr logging prefer X-Forwarded-For if present?
+	TrustXForwardedFor bool
+}
+
+func AccessLogger(opts Options) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			log := hlog.FromRequest(r)
@@ -28,7 +36,7 @@ func AccessLogger(logOptions bool) func(http.Handler) http.Handler {
 			next.ServeHTTP(crw, r)
 			requestDuration := time.Since(start)
 
-			if r.Method == http.MethodOptions && !logOptions {
+			if r.Method == http.MethodOptions && !opts.LogOptions {
 				return
 			}
 
@@ -48,6 +56,12 @@ func AccessLogger(logOptions bool) func(http.Handler) http.Handler {
 				requestLog.Str("referer", referer)
 			}
 			remoteAddr := r.RemoteAddr
+			if opts.TrustXForwardedFor {
+				forwarded := strings.Split(r.Header.Get("X-Forwarded-For"), ", ")
+				if len(forwarded) > 0 && len(forwarded[0]) > 0 {
+					requestLog.Str("x_forwarded_for", forwarded[0])
+				}
+			}
 
 			requestLog.Str("remote_addr", remoteAddr)
 			requestLog.Str("method", r.Method)

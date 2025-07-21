@@ -18,6 +18,12 @@ type CountingResponseWriter struct {
 	RequestBody    *bytes.Buffer
 }
 
+var (
+	_ http.ResponseWriter = (*CountingResponseWriter)(nil)
+	_ http.Flusher        = (*CountingResponseWriter)(nil)
+	_ http.Hijacker       = (*CountingResponseWriter)(nil)
+)
+
 func (crw *CountingResponseWriter) Header() http.Header {
 	return crw.ResponseWriter.Header()
 }
@@ -43,6 +49,14 @@ func (crw *CountingResponseWriter) WriteHeader(statusCode int) {
 	if !strings.HasPrefix(crw.Header().Get("Content-Type"), "application/json") {
 		crw.ResponseBody = nil
 	}
+}
+
+func (crw *CountingResponseWriter) Flush() {
+	flusher, ok := crw.ResponseWriter.(http.Flusher)
+	if !ok {
+		return
+	}
+	flusher.Flush()
 }
 
 func (crw *CountingResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
