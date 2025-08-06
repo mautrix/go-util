@@ -16,9 +16,10 @@ import (
 //
 // It's modelled after Python's asyncio.Event: https://docs.python.org/3/library/asyncio-sync.html#asyncio.Event
 type Event struct {
-	ch  chan empty
-	set bool
-	l   sync.RWMutex
+	ch      chan empty
+	set     bool
+	waiting bool
+	l       sync.RWMutex
 }
 
 // NewEvent creates a new event. It will initially be unset.
@@ -34,6 +35,7 @@ type EventChan = <-chan empty
 func (e *Event) GetChan() EventChan {
 	e.l.RLock()
 	defer e.l.RUnlock()
+	e.waiting = true
 	return e.ch
 }
 
@@ -73,6 +75,18 @@ func (e *Event) Set() {
 	if !e.set {
 		close(e.ch)
 		e.set = true
+	}
+}
+
+// Notify notifies all waiters, but doesn't set the event.
+//
+// Calling Notify when the event is already set is a no-op.
+func (e *Event) Notify() {
+	e.l.Lock()
+	defer e.l.Unlock()
+	if !e.set && e.waiting {
+		close(e.ch)
+		e.ch = make(chan empty)
 	}
 }
 
