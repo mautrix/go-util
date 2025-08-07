@@ -87,6 +87,7 @@ func (e *Event) Notify() {
 	if !e.set && e.waiting {
 		close(e.ch)
 		e.ch = make(chan empty)
+		e.waiting = false
 	}
 }
 
@@ -98,5 +99,6 @@ func (e *Event) Clear() {
 	if e.set {
 		e.ch = make(chan empty)
 		e.set = false
+		e.waiting = false
 	}
 }
