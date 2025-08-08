@@ -16,6 +16,8 @@ import (
 // UnsafeBytes returns a byte slice that points to the same memory as the input string.
 //
 // The returned byte slice must not be modified.
+//
+// See [go.mau.fi/util/exbytes.UnsafeString] for the reverse operation.
 func UnsafeBytes(str string) []byte {
 	return unsafe.Slice(unsafe.StringData(str), len(str))
 }
