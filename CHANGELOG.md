@@ -1,3 +1,20 @@
+# v0.9.0 (unreleased)
+
+* **Breaking change *(exhttp)*** Refactored HandleErrors middleware to take raw
+  response data instead of functions returning response data.
+* *(requestlog)* Added option to recover and log panics.
+* *(exhttp)* Added `syscall.EPIPE` to `IsNetworkError` checks.
+* *(exsync)* Added `Notify` method for waking up all `Event` waiters without
+  setting the flag. This is the atomic equivalent of `Set()` immediately
+  followed by `Clear()`.
+* *(exbytes)* Added `UnsafeString` method for converting a byte slice to a
+  string without copying.
+* *(exstrings)* Added `CollapseSpaces` to replace multiple sequential spaces
+  with one.
+* *(exstrings)* Added `PrefixByteRunLength` to count the number of occurrences
+  of a given byte at the start of a string.
+* *(base58)* Fixed panic when input contains non-ASCII characters.
+
 # v0.8.8 (2025-06-16)
 
 * *(requestlog)* Added option to log `X-Forwarded-For` header value.
