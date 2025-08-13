@@ -1,5 +1,6 @@
 # v0.9.0 (unreleased)
 
+* Bumped minimum Go version to 1.24.
 * **Breaking change *(exhttp)*** Refactored HandleErrors middleware to take raw
   response data instead of functions returning response data.
 * *(requestlog)* Added option to recover and log panics.
