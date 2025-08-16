@@ -6,7 +6,7 @@ toolchain go1.25.0
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/mattn/go-sqlite3 v1.14.31
+	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe
 	github.com/rs/zerolog v1.34.0
 	github.com/stretchr/testify v1.10.0

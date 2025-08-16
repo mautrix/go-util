@@ -1,4 +1,4 @@
-# v0.9.0 (unreleased)
+# v0.9.0 (2025-08-16)
 
 * Bumped minimum Go version to 1.24.
 * **Breaking change *(exhttp)*** Refactored HandleErrors middleware to take raw
