@@ -18,13 +18,19 @@ const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 // StringBytes generates a random string of the given length and returns it as a byte array.
 func StringBytes(n int) []byte {
+	return StringBytesCharset(n, letters)
+}
+
+// StringBytesCharset generates a random string of the given length using the given character set and returns it as a byte array.
+func StringBytesCharset(n int, charset string) []byte {
 	if n <= 0 {
 		return []byte{}
 	}
 	input := Bytes(n * 2)
 	for i := 0; i < n; i++ {
-		// Risk of modulo bias is only 2 in 65535, values between 0 and 65533 are uniformly distributed
-		input[i] = letters[binary.BigEndian.Uint16(input[i*2:])%uint16(len(letters))]
+		// The risk of modulo bias is (65536 % len(charset)) / 65536.
+		// For the default charset, that's 2 in 65536 or 0.003 %.
+		input[i] = charset[binary.BigEndian.Uint16(input[i*2:])%uint16(len(charset))]
 	}
 	input = input[:n]
 	return input
@@ -36,6 +42,14 @@ func String(n int) string {
 		return ""
 	}
 	return exbytes.UnsafeString(StringBytes(n))
+}
+
+// StringCharset generates a random string of the given length using the given character set.
+func StringCharset(n int, charset string) string {
+	if n <= 0 {
+		return ""
+	}
+	return exbytes.UnsafeString(StringBytesCharset(n, charset))
 }
 
 func base62Encode(val uint32, minWidth int) []byte {
