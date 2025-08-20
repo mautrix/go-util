@@ -17,6 +17,10 @@ const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 // StringBytes generates a random string of the given length and returns it as a byte array.
 func StringBytes(n int) []byte {
+	return StringBytesWithLetters(n, letters)
+}
+
+func StringBytesWithLetters(n int, letters string) []byte {
 	if n <= 0 {
 		return []byte{}
 	}
@@ -31,6 +35,10 @@ func StringBytes(n int) []byte {
 
 // String generates a random string of the given length.
 func String(n int) string {
+	return StringWithLetters(n, letters)
+}
+
+func StringWithLetters(n int, letters string) string {
 	if n <= 0 {
 		return ""
 	}
