@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Tulir Asokan
+// Copyright (c) 2025 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,7 +10,8 @@ import (
 	"encoding/binary"
 	"hash/crc32"
 	"strings"
-	"unsafe"
+
+	"go.mau.fi/util/exbytes"
 )
 
 const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -34,8 +35,7 @@ func String(n int) string {
 	if n <= 0 {
 		return ""
 	}
-	str := StringBytes(n)
-	return *(*string)(unsafe.Pointer(&str))
+	return exbytes.UnsafeString(StringBytes(n))
 }
 
 func base62Encode(val uint32, minWidth int) []byte {
@@ -65,7 +65,7 @@ func Token(namespace string, randomLength int) string {
 	token[len(namespace)+randomLength+1] = '_'
 	checksum := base62Encode(crc32.ChecksumIEEE(token[:len(token)-7]), 6)
 	copy(token[len(token)-6:], checksum)
-	return *(*string)(unsafe.Pointer(&token))
+	return exbytes.UnsafeString(token)
 }
 
 // GetTokenPrefix parses the given token generated with Token, validates the checksum and returns the prefix namespace.
