@@ -21,7 +21,32 @@ func StringBytes(n int) []byte {
 	return StringBytesCharset(n, letters)
 }
 
+// AppendSequence generates a random sequence of the given length using the given character set
+// and appends it to the given output slice.
+func AppendSequence[T any](n int, charset, output []T) []T {
+	if n <= 0 {
+		return output
+	}
+	if output == nil {
+		output = make([]T, 0, n)
+	}
+	// If risk of modulo bias is too high, use 32-bit integers as source instead of 16-bit.
+	if 65536%len(charset) < 200 {
+		input := Bytes(n * 2)
+		for i := 0; i < n; i++ {
+			output = append(output, charset[binary.BigEndian.Uint16(input[i*2:])%uint16(len(charset))])
+		}
+	} else {
+		input := Bytes(n * 4)
+		for i := 0; i < n; i++ {
+			output = append(output, charset[binary.BigEndian.Uint32(input[i*4:])%uint32(len(charset))])
+		}
+	}
+	return output
+}
+
 // StringBytesCharset generates a random string of the given length using the given character set and returns it as a byte array.
+// Note that the character set must be ASCII. For arbitrary Unicode, use [AppendSequence] with a `[]rune`.
 func StringBytesCharset(n int, charset string) []byte {
 	if n <= 0 {
 		return []byte{}
@@ -45,6 +70,7 @@ func String(n int) string {
 }
 
 // StringCharset generates a random string of the given length using the given character set.
+// Note that the character set must be ASCII. For arbitrary Unicode, use [AppendSequence] with a `[]rune`.
 func StringCharset(n int, charset string) string {
 	if n <= 0 {
 		return ""
