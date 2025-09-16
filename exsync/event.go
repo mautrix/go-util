@@ -8,6 +8,7 @@ package exsync
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -50,7 +51,7 @@ func (e *Event) Wait(ctx context.Context) error {
 	}
 }
 
-// WaitTimeout waits for either the event to happen within the given timeout.
+// WaitTimeout waits for the event to happen within the given timeout.
 // If the timeout expires first, the return value is false, otherwise it's true.
 func (e *Event) WaitTimeout(timeout time.Duration) bool {
 	select {
@@ -58,6 +59,19 @@ func (e *Event) WaitTimeout(timeout time.Duration) bool {
 		return true
 	case <-time.After(timeout):
 		return false
+	}
+}
+
+// WaitTimeoutCtx waits for the event to happen, the timeout to expire, or the given context to be done.
+// If the context or timeout is done first, an error is returned, otherwise the return value is nil.
+func (e *Event) WaitTimeoutCtx(ctx context.Context, timeout time.Duration) error {
+	select {
+	case <-e.GetChan():
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(timeout):
+		return fmt.Errorf("exsync.Event: wait timeout")
 	}
 }
 
