@@ -1,3 +1,13 @@
+# v0.9.1 (2025-09-16)
+
+* *(dbutil)* Added general documentation.
+* *(random)* Added `StringCharset` for generating a random string with a custom
+  character set and `AppendSequence` for generating a random slice with a
+  completely arbitrary types.
+* *(exslices)* Added methods for deduplicating a slice by custom key.
+* *(exsync)* Added `WaitTimeoutCtx` for waiting for an `Event` with both
+  a timeout and a context.
+
 # v0.9.0 (2025-08-16)
 
 * Bumped minimum Go version to 1.24.
