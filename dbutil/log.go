@@ -3,6 +3,7 @@ package dbutil
 import (
 	"context"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
@@ -112,6 +113,13 @@ func (z zeroLogger) QueryTiming(ctx context.Context, method, query string, args 
 		Str("query", query).
 		Interface("query_args", args).
 		Msg("Query")
+	callerSkipFrame := z.CallerSkipFrame
+	for ; callerSkipFrame < 10; callerSkipFrame++ {
+		_, filename, _, _ := runtime.Caller(callerSkipFrame)
+		if !strings.Contains(filename, "/dbutil/") {
+			break
+		}
+	}
 	if duration >= 1*time.Second {
 		evt := log.Warn().
 			Float64("duration_seconds", duration.Seconds()).
@@ -119,7 +127,7 @@ func (z zeroLogger) QueryTiming(ctx context.Context, method, query string, args 
 			Str("method", method).
 			Str("query", query)
 		if z.Caller {
-			evt = evt.Caller(z.CallerSkipFrame)
+			evt = evt.Caller(callerSkipFrame)
 		}
 		evt.Msg("Query took long")
 	}
