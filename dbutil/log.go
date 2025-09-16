@@ -93,12 +93,14 @@ func (z zeroLogger) DoUpgrade(from, to int, message string, txn TxnMode) {
 
 var whitespaceRegex = regexp.MustCompile(`\s+`)
 
+var TemporarySafeQueryLog bool
+
 func (z zeroLogger) QueryTiming(ctx context.Context, method, query string, args []any, nrows int, duration time.Duration, err error) {
 	log := zerolog.Ctx(ctx)
 	if log.GetLevel() == zerolog.Disabled || log == zerolog.DefaultContextLogger {
 		log = z.l
 	}
-	if (!z.TraceLogAllQueries || log.GetLevel() != zerolog.TraceLevel) && duration < 1*time.Second {
+	if (!z.TraceLogAllQueries || log.GetLevel() != zerolog.TraceLevel) && !TemporarySafeQueryLog && duration < 1*time.Second {
 		return
 	}
 	if nrows > -1 {
@@ -119,6 +121,15 @@ func (z zeroLogger) QueryTiming(ctx context.Context, method, query string, args 
 		if !strings.Contains(filename, "/dbutil/") {
 			break
 		}
+	}
+	if TemporarySafeQueryLog {
+		log.Debug().
+			Err(err).
+			Int64("duration_µs", duration.Microseconds()).
+			Str("method", method).
+			Str("query", query).
+			Caller(callerSkipFrame).
+			Msg("Query")
 	}
 	if duration >= 1*time.Second {
 		evt := log.Warn().
