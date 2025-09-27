@@ -41,7 +41,8 @@ func (pv ProgramVersion) Init(tag, commit, rawBuildTime string) ProgramVersion {
 	}
 	if tag == baseVersion {
 		pv.IsRelease = true
-		pv.LinkifiedVersion = fmt.Sprintf("[v%s](%s/releases/v%s)", baseVersion, pv.URL, pv.Tag)
+		pv.FormattedVersion = "v" + baseVersion
+		pv.LinkifiedVersion = fmt.Sprintf("[%s](%s/releases/v%s)", pv.FormattedVersion, pv.URL, pv.Tag)
 	} else {
 		suffix := ""
 		if !strings.HasSuffix(baseVersion, "+dev") {
