@@ -39,7 +39,7 @@ func (pv ProgramVersion) Init(tag, commit, rawBuildTime string) ProgramVersion {
 	if pv.SemCalVer && len(tag) > 0 {
 		tag = semverToCalver(tag)
 	}
-	if tag == baseVersion {
+	if tag == baseVersion || tag == baseVersion+".0" {
 		pv.IsRelease = true
 		pv.FormattedVersion = "v" + baseVersion
 		pv.LinkifiedVersion = fmt.Sprintf("[%s](%s/releases/v%s)", pv.FormattedVersion, pv.URL, pv.Tag)
@@ -79,15 +79,11 @@ func (pv ProgramVersion) Init(tag, commit, rawBuildTime string) ProgramVersion {
 
 func semverToCalver(semver string) string {
 	parts := strings.SplitN(semver, ".", 3)
-	if len(parts) < 2 {
-		panic(fmt.Errorf("invalid semver for calendar versioning: %s", semver))
+	if len(parts) != 3 {
+		panic(fmt.Errorf("invalid semver: %s", semver))
 	}
 	if len(parts[1]) != 4 {
 		panic(fmt.Errorf("invalid minor semver component for calendar versioning: %s", parts[1]))
 	}
-	calver := parts[1][:2] + "." + parts[1][2:]
-	if len(parts) == 3 {
-		calver += "." + parts[2]
-	}
-	return calver
+	return parts[1][:2] + "." + parts[1][2:] + "." + parts[2]
 }
