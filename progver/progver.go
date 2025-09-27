@@ -32,6 +32,10 @@ type ProgramVersion struct {
 	VersionDescription string
 }
 
+func (pv ProgramVersion) MarkdownDescription() string {
+	return fmt.Sprintf("[%s](%s) %s (%s)", pv.Name, pv.URL, pv.LinkifiedVersion, pv.BuildTime.Format(time.RFC1123))
+}
+
 func (pv ProgramVersion) Init(tag, commit, rawBuildTime string) ProgramVersion {
 	pv.Tag = tag
 	baseVersion := strings.TrimPrefix(pv.BaseVersion, "v")
