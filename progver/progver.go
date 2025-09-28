@@ -9,6 +9,7 @@ package progver
 import (
 	"fmt"
 	"runtime"
+	"runtime/debug"
 	"strings"
 	"time"
 )
@@ -36,7 +37,23 @@ func (pv ProgramVersion) MarkdownDescription() string {
 	return fmt.Sprintf("[%s](%s) %s (%s)", pv.Name, pv.URL, pv.LinkifiedVersion, pv.BuildTime.Format(time.RFC1123))
 }
 
+func findCommitFromBuildInfo() string {
+	info, _ := debug.ReadBuildInfo()
+	if info == nil {
+		return ""
+	}
+	for _, setting := range info.Settings {
+		if setting.Key == "vcs.revision" && len(setting.Value) >= 40 {
+			return setting.Value
+		}
+	}
+	return ""
+}
+
 func (pv ProgramVersion) Init(tag, commit, rawBuildTime string) ProgramVersion {
+	if commit == "" || commit == "unknown" {
+		commit = findCommitFromBuildInfo()
+	}
 	pv.Tag = tag
 	baseVersion := strings.TrimPrefix(pv.BaseVersion, "v")
 	tag = strings.TrimPrefix(tag, "v")
