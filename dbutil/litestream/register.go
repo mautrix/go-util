@@ -61,7 +61,6 @@ func init() {
 				conn,
 				"PRAGMA foreign_keys = ON",
 				"PRAGMA journal_mode = WAL",
-				"PRAGMA wal_autocheckpoint = 0",
 				"PRAGMA synchronous = NORMAL",
 				"PRAGMA busy_timeout = 5000",
 			)
@@ -78,7 +77,6 @@ func init() {
 				conn,
 				"PRAGMA foreign_keys = ON",
 				"PRAGMA journal_mode = WAL",
-				"PRAGMA wal_autocheckpoint = 0",
 				"PRAGMA synchronous = FULL",
 				"PRAGMA busy_timeout = 5000",
 			)
