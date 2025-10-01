@@ -3,6 +3,7 @@ package dbutil
 import (
 	"context"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
@@ -92,12 +93,14 @@ func (z zeroLogger) DoUpgrade(from, to int, message string, txn TxnMode) {
 
 var whitespaceRegex = regexp.MustCompile(`\s+`)
 
+var TemporarySafeQueryLog bool
+
 func (z zeroLogger) QueryTiming(ctx context.Context, method, query string, args []any, nrows int, duration time.Duration, err error) {
 	log := zerolog.Ctx(ctx)
 	if log.GetLevel() == zerolog.Disabled || log == zerolog.DefaultContextLogger {
 		log = z.l
 	}
-	if (!z.TraceLogAllQueries || log.GetLevel() != zerolog.TraceLevel) && duration < 1*time.Second {
+	if (!z.TraceLogAllQueries || log.GetLevel() != zerolog.TraceLevel) && !TemporarySafeQueryLog && duration < 1*time.Second {
 		return
 	}
 	if nrows > -1 {
@@ -112,6 +115,22 @@ func (z zeroLogger) QueryTiming(ctx context.Context, method, query string, args 
 		Str("query", query).
 		Interface("query_args", args).
 		Msg("Query")
+	callerSkipFrame := z.CallerSkipFrame
+	for ; callerSkipFrame < 10; callerSkipFrame++ {
+		_, filename, _, _ := runtime.Caller(callerSkipFrame)
+		if !strings.Contains(filename, "/dbutil/") {
+			break
+		}
+	}
+	if TemporarySafeQueryLog {
+		log.Debug().
+			Err(err).
+			Int64("duration_µs", duration.Microseconds()).
+			Str("method", method).
+			Str("query", query).
+			Caller(callerSkipFrame).
+			Msg("Query")
+	}
 	if duration >= 1*time.Second {
 		evt := log.Warn().
 			Float64("duration_seconds", duration.Seconds()).
@@ -119,7 +138,7 @@ func (z zeroLogger) QueryTiming(ctx context.Context, method, query string, args 
 			Str("method", method).
 			Str("query", query)
 		if z.Caller {
-			evt = evt.Caller(z.CallerSkipFrame)
+			evt = evt.Caller(callerSkipFrame)
 		}
 		evt.Msg("Query took long")
 	}
