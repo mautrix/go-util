@@ -7,6 +7,7 @@
 package exsync
 
 import (
+	"iter"
 	"maps"
 	"sync"
 )
@@ -119,4 +120,16 @@ func (sm *Map[Key, Value]) CopyData() map[Key]Value {
 	copied := maps.Clone(sm.data)
 	sm.lock.RUnlock()
 	return copied
+}
+
+func (sm *Map[Key, Value]) Iter() iter.Seq2[Key, Value] {
+	return func(yield func(Key, Value) bool) {
+		sm.lock.RLock()
+		defer sm.lock.RUnlock()
+		for k, v := range sm.data {
+			if !yield(k, v) {
+				return
+			}
+		}
+	}
 }
