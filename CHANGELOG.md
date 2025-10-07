@@ -1,3 +1,15 @@
+# v0.9.2 (unreleased)
+
+* *(progver)* Added program version calculation utility like the one used by
+  mautrix bridges and Meowlnir.
+* *(dbutil)* Added `sqlite3-fk-wal-fullsync` driver which is otherwise
+  equivalent to `sqlite3-fk-wal`, but sets `PRAGMA synchronous=FULL` for better
+  crash resistance.
+* *(dbutil)* Added explicit error if comment prefix (`--`) isn't at the start of
+  the line when using dialect filters with the `(lines commented)` modifier.
+* *(exsync)* Added NewMapWithData, Clear, Len and CopyFrom methods for maps.
+* *(exsync)* Added iterators for maps and sets.
+
 # v0.9.1 (2025-09-16)
 
 * *(dbutil)* Added general documentation.
