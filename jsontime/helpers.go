@@ -33,7 +33,7 @@ func UMicro(time time.Time) UnixMicro {
 	return UnixMicro{Time: time}
 }
 
-func UMicroInto(ts int64) UnixMicro {
+func UMicroInt(ts int64) UnixMicro {
 	return UMicro(zeroSafeUnixToTime(ts, time.UnixMicro))
 }
 
