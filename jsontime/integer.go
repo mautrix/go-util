@@ -147,10 +147,10 @@ func (un *UnixNano) Scan(src any) error {
 	}, &un.Time)
 }
 
-func (um UnixNano) Unix() int64      { return zeroSafeUnix(um.Time, time.Time.Unix) }
-func (um UnixNano) UnixMilli() int64 { return zeroSafeUnix(um.Time, time.Time.UnixMilli) }
-func (um UnixNano) UnixMicro() int64 { return zeroSafeUnix(um.Time, time.Time.UnixMicro) }
-func (um UnixNano) UnixNano() int64  { return zeroSafeUnix(um.Time, time.Time.UnixNano) }
+func (un UnixNano) Unix() int64      { return zeroSafeUnix(un.Time, time.Time.Unix) }
+func (un UnixNano) UnixMilli() int64 { return zeroSafeUnix(un.Time, time.Time.UnixMilli) }
+func (un UnixNano) UnixMicro() int64 { return zeroSafeUnix(un.Time, time.Time.UnixMicro) }
+func (un UnixNano) UnixNano() int64  { return zeroSafeUnix(un.Time, time.Time.UnixNano) }
 
 type Unix struct {
 	time.Time
@@ -179,7 +179,7 @@ func (u *Unix) Scan(src any) error {
 	}, &u.Time)
 }
 
-func (um Unix) Unix() int64      { return zeroSafeUnix(um.Time, time.Time.Unix) }
-func (um Unix) UnixMilli() int64 { return zeroSafeUnix(um.Time, time.Time.UnixMilli) }
-func (um Unix) UnixMicro() int64 { return zeroSafeUnix(um.Time, time.Time.UnixMicro) }
-func (um Unix) UnixNano() int64  { return zeroSafeUnix(um.Time, time.Time.UnixNano) }
+func (u Unix) Unix() int64      { return zeroSafeUnix(u.Time, time.Time.Unix) }
+func (u Unix) UnixMilli() int64 { return zeroSafeUnix(u.Time, time.Time.UnixMilli) }
+func (u Unix) UnixMicro() int64 { return zeroSafeUnix(u.Time, time.Time.UnixMicro) }
+func (u Unix) UnixNano() int64  { return zeroSafeUnix(u.Time, time.Time.UnixNano) }
