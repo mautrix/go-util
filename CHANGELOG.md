@@ -1,4 +1,4 @@
-# v0.9.2 (unreleased)
+# v0.9.2 (2025-10-16)
 
 * *(progver)* Added program version calculation utility like the one used by
   mautrix bridges and Meowlnir.
@@ -9,6 +9,8 @@
   the line when using dialect filters with the `(lines commented)` modifier.
 * *(exsync)* Added NewMapWithData, Clear, Len and CopyFrom methods for maps.
 * *(exsync)* Added iterators for maps and sets.
+* *(jsontime)* Changed `Unix*()` methods and `jsontime.U*Int()` functions to
+  treat 0 and the zero `time.Time` value as the same.
 
 # v0.9.1 (2025-09-16)
 
