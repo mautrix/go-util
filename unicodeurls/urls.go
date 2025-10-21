@@ -21,10 +21,11 @@ import (
 )
 
 const UnicodeVersion = "17.0.0"
+const BaseURL = "https://www.unicode.org/Public/" + UnicodeVersion
 
-const EmojiVariationSequences = "https://www.unicode.org/Public/" + UnicodeVersion + "/ucd/emoji/emoji-variation-sequences.txt"
-const EmojiTest = "https://unicode.org/Public/" + UnicodeVersion + "/emoji/emoji-test.txt"
-const Confusables = "https://www.unicode.org/Public/security/" + UnicodeVersion + ".0/confusables.txt"
+const EmojiVariationSequences = BaseURL + "/ucd/emoji/emoji-variation-sequences.txt"
+const EmojiTest = BaseURL + "/emoji/emoji-test.txt"
+const Confusables = BaseURL + "/security/confusables.txt"
 
 // ReadDataFile fetches a data file from a URL and processes it line by line with the given processor function.
 func ReadDataFile(url string, processor func(string)) {
