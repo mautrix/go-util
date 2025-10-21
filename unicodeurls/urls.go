@@ -11,6 +11,7 @@ package unicodeurls
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -19,15 +20,18 @@ import (
 	"go.mau.fi/util/exerrors"
 )
 
-const UnicodeVersion = "16.0"
+const UnicodeVersion = "17.0.0"
 
-const EmojiVariationSequences = "https://www.unicode.org/Public/" + UnicodeVersion + ".0/ucd/emoji/emoji-variation-sequences.txt"
-const EmojiTest = "https://unicode.org/Public/emoji/" + UnicodeVersion + "/emoji-test.txt"
+const EmojiVariationSequences = "https://www.unicode.org/Public/" + UnicodeVersion + "/ucd/emoji/emoji-variation-sequences.txt"
+const EmojiTest = "https://unicode.org/Public/" + UnicodeVersion + "/emoji/emoji-test.txt"
 const Confusables = "https://www.unicode.org/Public/security/" + UnicodeVersion + ".0/confusables.txt"
 
 // ReadDataFile fetches a data file from a URL and processes it line by line with the given processor function.
 func ReadDataFile(url string, processor func(string)) {
 	resp := exerrors.Must(http.Get(url))
+	if resp.StatusCode != http.StatusOK {
+		panic(fmt.Errorf("unexpected status code %d from %s", resp.StatusCode, url))
+	}
 	buf := bufio.NewReader(resp.Body)
 	for {
 		line, err := buf.ReadString('\n')
