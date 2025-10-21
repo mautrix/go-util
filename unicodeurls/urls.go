@@ -27,8 +27,16 @@ const EmojiVariationSequences = BaseURL + "/ucd/emoji/emoji-variation-sequences.
 const EmojiTest = BaseURL + "/emoji/emoji-test.txt"
 const Confusables = BaseURL + "/security/confusables.txt"
 
+type ReadParams struct {
+	ProcessComments bool
+}
+
 // ReadDataFile fetches a data file from a URL and processes it line by line with the given processor function.
-func ReadDataFile(url string, processor func(string)) {
+func ReadDataFile(url string, processor func(string), params ...ReadParams) {
+	var param ReadParams
+	if len(params) > 0 {
+		param = params[0]
+	}
 	resp := exerrors.Must(http.Get(url))
 	if resp.StatusCode != http.StatusOK {
 		panic(fmt.Errorf("unexpected status code %d from %s", resp.StatusCode, url))
@@ -40,7 +48,7 @@ func ReadDataFile(url string, processor func(string)) {
 			break
 		} else if err != nil {
 			panic(err)
-		} else if line == "" || strings.HasPrefix(line, "#") {
+		} else if line == "" || (strings.HasPrefix(line, "#") && !param.ProcessComments) {
 			continue
 		}
 		processor(line)
@@ -48,23 +56,23 @@ func ReadDataFile(url string, processor func(string)) {
 }
 
 // ReadDataFileList fetches a data file from a URL and converts lines into array items with the given function.
-func ReadDataFileList[T any](url string, processor func(string) (T, bool)) (output []T) {
+func ReadDataFileList[T any](url string, processor func(string) (T, bool), params ...ReadParams) (output []T) {
 	ReadDataFile(url, func(s string) {
 		if item, ok := processor(s); ok {
 			output = append(output, item)
 		}
-	})
+	}, params...)
 	return
 }
 
 // ReadDataFileMap fetches a data file from a URL and converts lines into a map with the given function.
-func ReadDataFileMap[Key comparable, Value any](url string, processor func(string) (Key, Value, bool)) (output map[Key]Value) {
+func ReadDataFileMap[Key comparable, Value any](url string, processor func(string) (Key, Value, bool), params ...ReadParams) (output map[Key]Value) {
 	output = make(map[Key]Value)
 	ReadDataFile(url, func(s string) {
 		if key, value, ok := processor(s); ok {
 			output[key] = value
 		}
-	})
+	}, params...)
 	return
 }
 
