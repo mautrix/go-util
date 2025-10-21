@@ -14,6 +14,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -31,17 +33,29 @@ type ReadParams struct {
 	ProcessComments bool
 }
 
+var dataDir = os.Getenv("MAUTRIX_GO_UTIL_UNICODE_DATA_DIR")
+
 // ReadDataFile fetches a data file from a URL and processes it line by line with the given processor function.
 func ReadDataFile(url string, processor func(string), params ...ReadParams) {
 	var param ReadParams
 	if len(params) > 0 {
 		param = params[0]
 	}
-	resp := exerrors.Must(http.Get(url))
-	if resp.StatusCode != http.StatusOK {
-		panic(fmt.Errorf("unexpected status code %d from %s", resp.StatusCode, url))
+	cachePath := filepath.Join(dataDir, filepath.Base(url))
+	f, err := os.Open(cachePath)
+	var buf *bufio.Reader
+	if err != nil {
+		req := exerrors.Must(http.NewRequest(http.MethodGet, url, nil))
+		req.Header.Set("User-Agent", "Unicode data parser +https://github.com/mautrix/go-util")
+		resp := exerrors.Must(http.DefaultClient.Do(req))
+		if resp.StatusCode != http.StatusOK {
+			panic(fmt.Errorf("unexpected status code %d from %s", resp.StatusCode, url))
+		}
+		buf = bufio.NewReader(resp.Body)
+	} else {
+		defer f.Close()
+		buf = bufio.NewReader(f)
 	}
-	buf := bufio.NewReader(resp.Body)
 	for {
 		line, err := buf.ReadString('\n')
 		if errors.Is(err, io.EOF) {
