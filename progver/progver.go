@@ -94,6 +94,9 @@ func (pv ProgramVersion) Init(tag, commit, rawBuildTime string) ProgramVersion {
 	}
 	pv.VersionDescription = fmt.Sprintf("%s %s (%s)", pv.Name, pv.FormattedVersion, builtWith)
 	pv.Commit = commit
+	if pv.Commit == "" {
+		pv.Commit = "unknown"
+	}
 	pv.BuildTime = buildTime
 	return pv
 }
