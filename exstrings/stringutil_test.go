@@ -83,3 +83,28 @@ func TestCollapseSpaces(t *testing.T) {
 		assert.Equal(t, tc.expected, result)
 	}
 }
+
+func TestLongestCommonPrefix(t *testing.T) {
+	testCases := []struct {
+		input    []string
+		expected string
+	}{
+		{[]string{}, ""},
+		{[]string{"flower"}, "flower"},
+		{[]string{"flower", "flow", "flight"}, "fl"},
+		{[]string{"dog", "racecar", "car"}, ""},
+		{[]string{"interspecies", "interstellar", "interstate"}, "inters"},
+		{[]string{"throne", "throne"}, "throne"},
+		{[]string{"throne", "dungeon"}, ""},
+		{[]string{"prefix", "prefixes", "prefixed"}, "prefix"},
+		{[]string{"a"}, "a"},
+		{[]string{"", "b"}, ""},
+		{[]string{"ab", "a"}, "a"},
+		{[]string{"a", "b"}, ""},
+		{[]string{"aaab", "aaac", "aaad", "aaae", "aaf", "aaag", "aaah"}, "aa"},
+	}
+	for _, tc := range testCases {
+		result := LongestCommonPrefix(tc.input)
+		assert.Equal(t, tc.expected, result)
+	}
+}
