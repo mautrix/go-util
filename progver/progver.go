@@ -54,6 +54,9 @@ func (pv ProgramVersion) Init(tag, commit, rawBuildTime string) ProgramVersion {
 	if commit == "" || commit == "unknown" {
 		commit = findCommitFromBuildInfo()
 	}
+	if tag == "unknown" {
+		tag = ""
+	}
 	pv.Tag = tag
 	baseVersion := strings.TrimPrefix(pv.BaseVersion, "v")
 	tag = strings.TrimPrefix(tag, "v")
