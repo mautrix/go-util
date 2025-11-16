@@ -1,9 +1,10 @@
-# v0.9.3 (unreleased)
+# v0.9.3 (2025-11-16)
 
 * *(unicodeurls,confusables,emojirunes,variationselector)* Updated to Unicode v17.
 * *(dbutil)* Added option to log all queries without arguments.
 * *(exmaps)* Added non-synchronous equivalent of `exsync.Set`.
 * *(exslices)* Added utilities for deleting items by value.
+* *(exslices)* Added non-synchronous `Stack` type.
 * *(exstrings)* Added `LongestCommonPrefix`.
 * *(shlex)* Added support for line continuations with backslashes.
 * *(progver)* Fixed linkified version for tags.
