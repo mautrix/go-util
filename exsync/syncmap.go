@@ -120,6 +120,21 @@ func (sm *Map[Key, Value]) CopyFrom(other map[Key]Value) {
 	sm.lock.Unlock()
 }
 
+// SwapData replaces the internal map with the given map, returning the previous map.
+// If the given map is nil, a new empty map is created.
+// The given map must not be modified after passing it to this function.
+func (sm *Map[Key, Value]) SwapData(other map[Key]Value) map[Key]Value {
+	sm.lock.Lock()
+	prev := sm.data
+	if other == nil {
+		sm.data = make(map[Key]Value)
+	} else {
+		sm.data = other
+	}
+	sm.lock.Unlock()
+	return prev
+}
+
 // Clone returns a copy of the map.
 func (sm *Map[Key, Value]) Clone() *Map[Key, Value] {
 	return NewMapWithData(sm.CopyData())
