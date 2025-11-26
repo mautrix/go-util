@@ -25,6 +25,8 @@ func makeWaveformArgs(samples, maxValue int) []string {
 		fmt.Sprintf("aformat=channel_layouts=mono,showwavespic=s=%dx%d:colors=white", samples, maxValue*2),
 		"-frames:v",
 		"1",
+		"-update",
+		"1",
 	}
 }
 
