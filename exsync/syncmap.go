@@ -82,6 +82,23 @@ func (sm *Map[Key, Value]) GetDefault(key Key, def Value) Value {
 	return def
 }
 
+// GetOrSetFactory gets a value in the map if the key already exists,
+// otherwise inserts a new value from the given function and returns it.
+func (sm *Map[Key, Value]) GetOrSetFactory(key Key, def func() Value) Value {
+	val, ok := sm.Get(key)
+	if ok {
+		return val
+	}
+	sm.lock.Lock()
+	defer sm.lock.Unlock()
+	value, ok := sm.data[key]
+	if !ok {
+		value = def()
+		sm.data[key] = value
+	}
+	return value
+}
+
 // GetOrSet gets a value in the map if the key already exists, otherwise inserts the given value and returns it.
 //
 // The boolean return parameter is true if the key already exists, and false if the given value was inserted.
