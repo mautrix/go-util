@@ -56,7 +56,7 @@ func main() {
 	targetGOARCH := os.Getenv("TARGET_GOARCH")
 	if targetGOOS != "" && targetGOARCH != "" {
 		env = slices.DeleteFunc(env, func(s string) bool {
-			return s == "GOOS" || s == "GOARCH"
+			return strings.HasPrefix(s, "GOOS=") || strings.HasPrefix(s, "GOARCH=")
 		})
 		env = append(env, "GOOS="+targetGOOS)
 		env = append(env, "GOARCH="+targetGOARCH)
