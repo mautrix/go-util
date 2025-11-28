@@ -224,7 +224,6 @@ func (t *Tokenizer) scanStream() (*Token, error) {
 					}
 				case escapeRuneClass:
 					{
-						tokenType = WordToken
 						state = escapingState
 					}
 				case commentRuneClass:
@@ -288,8 +287,24 @@ func (t *Tokenizer) scanStream() (*Token, error) {
 					}
 				default:
 					{
-						state = inWordState
-						value = append(value, nextRune)
+						// Backslash at end of line does not mean literal
+						// newline, rather it means line continuation. If we
+						// see this then we need to go back to the previous
+						// state. If we had already been parsing a word
+						// token then we can continue that, otherwise we
+						// haven't seen any runes yet so we should go back
+						// to the start.
+						if nextRune == '\n' {
+							if tokenType == WordToken {
+								state = inWordState
+							} else {
+								state = startState
+							}
+						} else {
+							tokenType = WordToken
+							state = inWordState
+							value = append(value, nextRune)
+						}
 					}
 				}
 			}

@@ -1,3 +1,56 @@
+# v0.9.3 (2025-11-16)
+
+* *(unicodeurls,confusables,emojirunes,variationselector)* Updated to Unicode v17.
+* *(dbutil)* Added option to log all queries without arguments.
+* *(exmaps)* Added non-synchronous equivalent of `exsync.Set`.
+* *(exslices)* Added utilities for deleting items by value.
+* *(exslices)* Added non-synchronous `Stack` type.
+* *(exstrings)* Added `LongestCommonPrefix`.
+* *(shlex)* Added support for line continuations with backslashes.
+* *(progver)* Fixed linkified version for tags.
+
+# v0.9.2 (2025-10-16)
+
+* *(progver)* Added program version calculation utility like the one used by
+  mautrix bridges and Meowlnir.
+* *(dbutil)* Added `sqlite3-fk-wal-fullsync` driver which is otherwise
+  equivalent to `sqlite3-fk-wal`, but sets `PRAGMA synchronous=FULL` for better
+  crash resistance.
+* *(dbutil)* Added explicit error if comment prefix (`--`) isn't at the start of
+  the line when using dialect filters with the `(lines commented)` modifier.
+* *(exsync)* Added NewMapWithData, Clear, Len and CopyFrom methods for maps.
+* *(exsync)* Added iterators for maps and sets.
+* *(jsontime)* Changed `Unix*()` methods and `jsontime.U*Int()` functions to
+  treat 0 and the zero `time.Time` value as the same.
+
+# v0.9.1 (2025-09-16)
+
+* *(dbutil)* Added general documentation.
+* *(random)* Added `StringCharset` for generating a random string with a custom
+  character set and `AppendSequence` for generating a random slice with a
+  completely arbitrary types.
+* *(exslices)* Added methods for deduplicating a slice by custom key.
+* *(exsync)* Added `WaitTimeoutCtx` for waiting for an `Event` with both
+  a timeout and a context.
+
+# v0.9.0 (2025-08-16)
+
+* Bumped minimum Go version to 1.24.
+* **Breaking change *(exhttp)*** Refactored HandleErrors middleware to take raw
+  response data instead of functions returning response data.
+* *(requestlog)* Added option to recover and log panics.
+* *(exhttp)* Added `syscall.EPIPE` to `IsNetworkError` checks.
+* *(exsync)* Added `Notify` method for waking up all `Event` waiters without
+  setting the flag. This is the atomic equivalent of `Set()` immediately
+  followed by `Clear()`.
+* *(exbytes)* Added `UnsafeString` method for converting a byte slice to a
+  string without copying.
+* *(exstrings)* Added `CollapseSpaces` to replace multiple sequential spaces
+  with one.
+* *(exstrings)* Added `PrefixByteRunLength` to count the number of occurrences
+  of a given byte at the start of a string.
+* *(base58)* Fixed panic when input contains non-ASCII characters.
+
 # v0.8.8 (2025-06-16)
 
 * *(requestlog)* Added option to log `X-Forwarded-For` header value.

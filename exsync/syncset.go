@@ -7,7 +7,10 @@
 package exsync
 
 import (
+	"iter"
 	"sync"
+
+	"go.mau.fi/util/exmaps"
 )
 
 type empty struct{}
@@ -19,6 +22,8 @@ type Set[T comparable] struct {
 	m map[T]empty
 	l sync.RWMutex
 }
+
+var _ exmaps.AbstractSet[int] = (*Set[int])(nil)
 
 // NewSet constructs a Set with an empty map.
 func NewSet[T comparable]() *Set[T] {
@@ -133,4 +138,16 @@ func (s *Set[T]) AsList() []T {
 	}
 	s.l.RUnlock()
 	return list
+}
+
+func (s *Set[T]) Iter() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		s.l.RLock()
+		defer s.l.RUnlock()
+		for item := range s.m {
+			if !yield(item) {
+				return
+			}
+		}
+	}
 }
