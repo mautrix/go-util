@@ -52,12 +52,15 @@ func main() {
 	}
 	args = append(args, buildPackage)
 	env := os.Environ()
-	if os.Getenv("TARGET_GOOS") != "" && os.Getenv("TARGET_GOARCH") != "" {
+	targetGOOS := os.Getenv("TARGET_GOOS")
+	targetGOARCH := os.Getenv("TARGET_GOARCH")
+	if targetGOOS != "" && targetGOARCH != "" {
 		env = slices.DeleteFunc(env, func(s string) bool {
 			return s == "GOOS" || s == "GOARCH"
 		})
-		env = append(env, "GOOS="+os.Getenv("TARGET_GOOS"))
-		env = append(env, "GOARCH="+os.Getenv("TARGET_GOARCH"))
+		env = append(env, "GOOS="+targetGOOS)
+		env = append(env, "GOARCH="+targetGOARCH)
+		fmt.Printf("Actually building for %s/%s\n", targetGOOS, targetGOARCH)
 	}
 	if runtime.GOOS == "darwin" && os.Getenv("LIBRARY_PATH") == "" {
 		if brewPrefix := subcommand("brew", "--prefix"); brewPrefix != "" {
