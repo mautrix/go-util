@@ -18,7 +18,10 @@ import (
 const ldflagTemplate = "-s -w -X '%[1]s.Tag=%[2]s' -X '%[1]s.Commit=%[3]s' -X '%[1]s.BuildTime=%[4]s' -X 'maunium.net/go/mautrix.GoModVersion=%[5]s' %[6]s"
 
 func main() {
-	versionPackage := "main"
+	versionPackage := os.Getenv("MAU_VERSION_PACKAGE")
+	if versionPackage == "" {
+		versionPackage = "main"
+	}
 	var gitCommit, gitTag string
 	if os.Getenv("CI") == "true" {
 		gitCommit = os.Getenv("CI_COMMIT_SHA")
