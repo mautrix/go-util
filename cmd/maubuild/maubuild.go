@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"slices"
 	"strings"
 	"syscall"
 	"time"
@@ -51,6 +52,13 @@ func main() {
 	}
 	args = append(args, buildPackage)
 	env := os.Environ()
+	if os.Getenv("TARGET_GOOS") != "" && os.Getenv("TARGET_GOARCH") != "" {
+		env = slices.DeleteFunc(env, func(s string) bool {
+			return s == "GOOS" || s == "GOARCH"
+		})
+		env = append(env, "GOOS="+os.Getenv("TARGET_GOOS"))
+		env = append(env, "GOARCH="+os.Getenv("TARGET_GOARCH"))
+	}
 	if runtime.GOOS == "darwin" && os.Getenv("LIBRARY_PATH") == "" {
 		if brewPrefix := subcommand("brew", "--prefix"); brewPrefix != "" {
 			fmt.Println("Mac: Using", brewPrefix, "for LIBRARY_PATH and CPATH")
