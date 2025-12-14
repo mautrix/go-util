@@ -1,3 +1,11 @@
+# v0.9.4 (unreleased)
+
+* *(exsync)* Added methods to swap entire map data and a GetOrSet equivalent
+  with a factory method.
+* *(ffmpeg/waveform)* Added package for generating waveform data using ffmpeg.
+* *(cmd/maubuild)* Added tool to replace the `build.sh` script in bridges.
+* *(lottie)* Fixed animated webp output not being looped properly.
+
 # v0.9.3 (2025-11-16)
 
 * *(unicodeurls,confusables,emojirunes,variationselector)* Updated to Unicode v17.
