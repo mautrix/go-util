@@ -1,4 +1,4 @@
-# v0.9.4 (unreleased)
+# v0.9.4 (2025-12-16)
 
 * *(exsync)* Added methods to swap entire map data and a GetOrSet equivalent
   with a factory method.
