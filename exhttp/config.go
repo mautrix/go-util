@@ -2,6 +2,7 @@ package exhttp
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net"
 	"net/http"
@@ -32,6 +33,8 @@ type ClientSettings struct {
 	ResponseHeaderTimeout time.Duration
 	IdleConnTimeout       time.Duration
 
+	TLSConfig    *tls.Config
+	InsecureTLS  bool
 	DisableHTTP2 bool
 }
 
@@ -77,6 +80,11 @@ func (cs ClientSettings) WithGlobalTimeout(timeout time.Duration) ClientSettings
 
 func (cs ClientSettings) WithoutHTTP2() ClientSettings {
 	cs.DisableHTTP2 = true
+	return cs
+}
+
+func (cs ClientSettings) WithTLSConfig(tlsConfig *tls.Config) ClientSettings {
+	cs.TLSConfig = tlsConfig
 	return cs
 }
 
@@ -132,6 +140,15 @@ func (cs ClientSettings) Configure(transport *http.Transport) *http.Transport {
 	}
 	if !cs.DisableHTTP2 {
 		transport.ForceAttemptHTTP2 = true
+	}
+	if cs.TLSConfig != nil {
+		transport.TLSClientConfig = cs.TLSConfig
+	}
+	if cs.InsecureTLS {
+		if transport.TLSClientConfig == nil {
+			transport.TLSClientConfig = &tls.Config{}
+		}
+		transport.TLSClientConfig.InsecureSkipVerify = true
 	}
 	return transport
 }
