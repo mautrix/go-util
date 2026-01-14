@@ -37,7 +37,7 @@ type ClientSettings struct {
 	InsecureTLS  bool
 	DisableHTTP2 bool
 
-	TransportOverride func(ClientSettings) *http.Transport
+	TransportOverride func(ClientSettings) http.RoundTripper
 }
 
 var SensibleClientSettings = ClientSettings{
