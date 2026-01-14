@@ -36,6 +36,8 @@ type ClientSettings struct {
 	TLSConfig    *tls.Config
 	InsecureTLS  bool
 	DisableHTTP2 bool
+
+	TransportOverride func(ClientSettings) *http.Transport
 }
 
 var SensibleClientSettings = ClientSettings{
@@ -153,9 +155,14 @@ func (cs ClientSettings) Configure(transport *http.Transport) *http.Transport {
 	return transport
 }
 
-func (cs ClientSettings) Compile() *http.Client {
-	return &http.Client{
-		Transport: cs.Configure(&http.Transport{}),
-		Timeout:   cs.GlobalTimeout,
+func (cs ClientSettings) Compile() (c *http.Client) {
+	c = &http.Client{
+		Timeout: cs.GlobalTimeout,
 	}
+	if cs.TransportOverride != nil {
+		c.Transport = cs.TransportOverride(cs)
+	} else {
+		c.Transport = cs.Configure(&http.Transport{})
+	}
+	return
 }
