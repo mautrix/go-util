@@ -43,6 +43,12 @@ func MakeQueryHelperSimple[T DataStruct[T]](db *Database, new func() T) *QueryHe
 	})
 }
 
+// MakeQueryHelperReflect is a form of MakeQueryHelper that uses reflection to
+// create new instances of T. This requires that T is a pointer to a struct type.
+func MakeQueryHelperReflect[T DataStruct[T]](db *Database) *QueryHelper[T] {
+	return MakeQueryHelper[T](db, nil)
+}
+
 func reflectBuilder[T DataStruct[T]](ref reflect.Type) func(*QueryHelper[T]) T {
 	return func(_ *QueryHelper[T]) T {
 		return reflect.New(ref).Interface().(T)
