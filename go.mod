@@ -1,8 +1,8 @@
 module go.mau.fi/util
 
-go 1.24.0
+go 1.25.0
 
-toolchain go1.25.6
+toolchain go1.26.0
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
