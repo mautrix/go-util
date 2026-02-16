@@ -1,3 +1,9 @@
+# v0.9.6 (2026-02-16)
+
+* Bumped minimum Go version to 1.25.
+* *(dbutil)* Added simpler versions of `MakeQueryHelper`.
+* *(cmd/maubuild)* Added support for the `c-shared` and `c-archive` build modes.
+
 # v0.9.5 (2026-01-16)
 
 * *(exhttp)* Added utility for configuring a HTTP transport.
