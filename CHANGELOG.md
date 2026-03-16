@@ -1,3 +1,7 @@
+# v0.9.7 (2026-03-16)
+
+* Added `AddSeq` to `exmaps.Set` and `exsync.Set`.
+
 # v0.9.6 (2026-02-16)
 
 * Bumped minimum Go version to 1.25.
