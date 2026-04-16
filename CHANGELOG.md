@@ -1,3 +1,9 @@
+# v0.9.8 (2026-04-16)
+
+* Added `IsZero` for duration wrappers in the jsontime package to be compatible
+  with the `omitzero` struct tag.
+* Added `Clear` to `exmaps.Set` and `exsync.Set`.
+
 # v0.9.7 (2026-03-16)
 
 * Added `AddSeq` to `exmaps.Set` and `exsync.Set`.
