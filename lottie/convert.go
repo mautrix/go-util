@@ -133,7 +133,7 @@ func FFmpegConvert(ctx context.Context, input io.Reader, outputFile string, widt
 	case ".webm":
 		outputArgs = []string{"-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-f", "webm"}
 	case ".webp":
-		outputArgs = []string{"-c:v", "libwebp_anim", "-pix_fmt", "yuva420p", "-f", "webp"}
+		outputArgs = []string{"-c:v", "libwebp_anim", "-pix_fmt", "yuva420p", "-f", "webp", "-loop", "0"}
 	default:
 		err = fmt.Errorf("unsupported extension %s", filepath.Ext(outputFile))
 		return

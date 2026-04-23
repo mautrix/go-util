@@ -1,3 +1,31 @@
+# v0.9.8 (2026-04-16)
+
+* Added `IsZero` for duration wrappers in the jsontime package to be compatible
+  with the `omitzero` struct tag.
+* Added `Clear` to `exmaps.Set` and `exsync.Set`.
+
+# v0.9.7 (2026-03-16)
+
+* Added `AddSeq` to `exmaps.Set` and `exsync.Set`.
+
+# v0.9.6 (2026-02-16)
+
+* Bumped minimum Go version to 1.25.
+* *(dbutil)* Added simpler versions of `MakeQueryHelper`.
+* *(cmd/maubuild)* Added support for the `c-shared` and `c-archive` build modes.
+
+# v0.9.5 (2026-01-16)
+
+* *(exhttp)* Added utility for configuring a HTTP transport.
+
+# v0.9.4 (2025-12-16)
+
+* *(exsync)* Added methods to swap entire map data and a GetOrSet equivalent
+  with a factory method.
+* *(ffmpeg/waveform)* Added package for generating waveform data using ffmpeg.
+* *(cmd/maubuild)* Added tool to replace the `build.sh` script in bridges.
+* *(lottie)* Fixed animated webp output not being looped properly.
+
 # v0.9.3 (2025-11-16)
 
 * *(unicodeurls,confusables,emojirunes,variationselector)* Updated to Unicode v17.

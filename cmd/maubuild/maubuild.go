@@ -32,7 +32,8 @@ func main() {
 		gitTag = subcommand("git", "describe", "--exact-match", "--tags")
 	}
 	extraLDFlags := os.Getenv("GO_LDFLAGS")
-	if os.Getenv("MAU_STATIC_BUILD") == "true" {
+	static := os.Getenv("MAU_STATIC_BUILD") == "true"
+	if static {
 		extraLDFlags += " -linkmode external -extldflags '-static'"
 	}
 	ldflags := fmt.Sprintf(
@@ -46,14 +47,29 @@ func main() {
 	)
 	args := []string{"go", "build", "-ldflags", ldflags}
 	args = append(args, os.Args[1:]...)
+	env := os.Environ()
+	targetGOOS := os.Getenv("TARGET_GOOS")
+	targetGOARCH := os.Getenv("TARGET_GOARCH")
 	buildPackage := os.Getenv("MAU_BUILD_PACKAGE_OVERRIDE")
+	if os.Getenv("MAU_BUILD_CSHARED") == "true" {
+		var ext string
+		buildMode := "c-shared"
+		if static {
+			buildMode = "c-archive"
+			ext = ".a"
+		} else if targetGOOS == "windows" {
+			ext = ".dll"
+		} else if targetGOOS == "darwin" {
+			ext = ".dylib"
+		} else {
+			ext = ".so"
+		}
+		args = append(args, "-buildmode="+buildMode, "-o", os.Getenv("BINARY_NAME")+ext)
+	}
 	if buildPackage == "" {
 		buildPackage = "./cmd/" + os.Getenv("BINARY_NAME")
 	}
 	args = append(args, buildPackage)
-	env := os.Environ()
-	targetGOOS := os.Getenv("TARGET_GOOS")
-	targetGOARCH := os.Getenv("TARGET_GOARCH")
 	if targetGOOS != "" && targetGOARCH != "" {
 		env = slices.DeleteFunc(env, func(s string) bool {
 			return strings.HasPrefix(s, "GOOS=") || strings.HasPrefix(s, "GOARCH=")
@@ -92,7 +108,11 @@ func directoryExists(dir string) bool {
 }
 
 func getMautrixGoVersion() string {
-	parsedGoMod := exerrors.Must(modfile.Parse("go.mod", exerrors.Must(os.ReadFile("go.mod")), nil))
+	goModPath := os.Getenv("MAU_GO_MOD_PATH")
+	if goModPath == "" {
+		goModPath = "go.mod"
+	}
+	parsedGoMod := exerrors.Must(modfile.Parse("go.mod", exerrors.Must(os.ReadFile(goModPath)), nil))
 	for _, req := range parsedGoMod.Require {
 		if req.Mod.Path == "maunium.net/go/mautrix" {
 			return req.Mod.Version
