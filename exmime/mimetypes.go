@@ -36,7 +36,9 @@ var MimeExtensionSanityOverrides = map[string]string{
 	"text/plain": ".txt",
 	"text/html":  ".html",
 
-	"application/xml": ".xml",
+	"application/xml":   ".xml",
+	"application/was":   ".zip",
+	"video/lottie+json": ".json",
 }
 
 func ExtensionFromMimetype(mimetype string) string {
