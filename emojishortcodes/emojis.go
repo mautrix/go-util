@@ -27,7 +27,7 @@ var shortcodeInit = sync.OnceFunc(func() {
 	}
 })
 
-func GetShortcodes() map[string]string {
+func GetMap() map[string]string {
 	shortcodeInit()
 	return shortcodeMap
 }
@@ -40,8 +40,8 @@ var skinToneRemover = strings.NewReplacer(
 	"\U0001F3FF", "",
 )
 
-func GetShortcode(emoji string) string {
-	sc := GetShortcodes()
+func Get(emoji string) string {
+	sc := GetMap()
 	emoji = skinToneRemover.Replace(emoji)
 	return sc[variationselector.Add(emoji)]
 }
