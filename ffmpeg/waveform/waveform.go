@@ -94,7 +94,7 @@ func clamp(data []int, to int) {
 	maxVal := slices.Max(data)
 	if maxVal < to {
 		for i := range data {
-			data[i] = int(float64(data[i]) * float64(to) / float64(maxVal))
+			data[i] = min(max(int(float64(data[i])*float64(to)/float64(maxVal)), 0), to)
 		}
 	}
 }
