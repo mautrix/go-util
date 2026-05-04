@@ -46,7 +46,14 @@ var matchTests = []MatchTest{
 	{mparams{"hellomeowworld", "hello*world"}, true},
 	{mparams{"hellomeowworld", "hellomeow*"}, true},
 	{mparams{"hellomeowworld", "*meowworld"}, true},
+	{mparams{"hellomeowworld", "h*meow*d"}, true},
 	{mparams{"meowwoofhmmdsa!asddfdfhg", "meow**?*?***?*?***hmm**?*?***?*?***asd**?*?***?*?***"}, true},
+	{mparams{"HeLlOMeOwWoRlD", "*meoW*"}, true},
+	{mparams{"HeLlOMeOwWoRlD", "heLlo*world"}, true},
+	{mparams{"HeLlOMeOwWoRlD", "hellomEow*"}, true},
+	{mparams{"HeLlOMeOwWoRlD", "*meowWorld"}, true},
+	{mparams{"HeLlOMeOwWoRlD", "h*meow*d"}, true},
+	{mparams{"MeoWWoofhMMdsa!asddfdfhG", "mEow**?*?***?*?***hmM**?*?***?*?***asd**?*?***?*?***"}, true},
 }
 
 func TestCompile(t *testing.T) {
