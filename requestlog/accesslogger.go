@@ -12,8 +12,19 @@ import (
 	"github.com/rs/zerolog/hlog"
 )
 
-const MaxRequestSizeLog = 4 * 1024
-const MaxStringRequestSizeLog = MaxRequestSizeLog / 2
+const (
+	MaxRequestSizeLog       = 4 * 1024
+	MaxStringRequestSizeLog = MaxRequestSizeLog / 2
+)
+
+func FilterHealthRequests(r *http.Request, crw *CountingResponseWriter) bool {
+	switch r.URL.Path {
+	case "/health", "/healthz", "/readyz", "/livez":
+		return crw.StatusCode >= 200 && crw.StatusCode < 300
+	default:
+		return false
+	}
+}
 
 type Options struct {
 	// Should OPTIONS requests be logged?
@@ -22,9 +33,15 @@ type Options struct {
 	TrustXForwardedFor bool
 	// Should we recover from panics?
 	Recover bool
+	// A filter to not log certain requests, if not given, FilterHealthRequests will be used
+	Filter func(r *http.Request, crw *CountingResponseWriter) bool
 }
 
 func AccessLogger(opts Options) func(http.Handler) http.Handler {
+	if opts.Filter == nil {
+		opts.Filter = FilterHealthRequests
+	}
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			log := hlog.FromRequest(r)
@@ -107,10 +124,7 @@ func AccessLogger(opts Options) func(http.Handler) http.Handler {
 
 			if r.Method == http.MethodOptions && !opts.LogOptions {
 				return
-			}
-
-			// don't log successful health requests
-			if r.URL.Path == "/health" && crw.StatusCode == http.StatusNoContent {
+			} else if opts.Filter(r, crw) {
 				return
 			}
 
