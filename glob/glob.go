@@ -40,7 +40,7 @@ func Compile(pattern string) Glob {
 func CompileWithImplicitContains(pattern string) Glob {
 	g := Compile(pattern)
 	if _, isExact := g.(ExactGlob); isExact {
-		return ContainsGlob(pattern)
+		return ContainsGlob(strings.ToLower(pattern))
 	}
 	return g
 }
