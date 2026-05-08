@@ -1,12 +1,21 @@
+# v0.9.9 (unreleased)
+
+* *(pkcs7)* Added helpers for implementing PKCS#7 padding and unpadding.
+* *(emojishortcodes)* Added simple data set with shortcodes for each emoji.
+* *(requestlog)* Added `Filter` function option to manually exclude requests
+  from logs.
+* *(glob)* Changed all matching to be case-insensitive.
+* *(ffmpeg/waveform)* Fixed waveform values sometimes going out of bounds.
+
 # v0.9.8 (2026-04-16)
 
-* Added `IsZero` for duration wrappers in the jsontime package to be compatible
-  with the `omitzero` struct tag.
-* Added `Clear` to `exmaps.Set` and `exsync.Set`.
+* *(jsontime)* Added `IsZero` for duration wrappers to be compatible with the
+  `omitzero` struct tag.
+* *(exmaps,exsync)* Added `Clear` to the `Set` types.
 
 # v0.9.7 (2026-03-16)
 
-* Added `AddSeq` to `exmaps.Set` and `exsync.Set`.
+* *(exmaps,exsync)* Added `AddSeq` to the `Set` types.
 
 # v0.9.6 (2026-02-16)
 
