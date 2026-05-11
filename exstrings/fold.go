@@ -19,6 +19,11 @@ func HasSuffixFold(s, suffix string) bool {
 }
 
 func IndexFold(s, substr string) int {
+	if len(substr) == 0 {
+		return 0
+	} else if len(s) < len(substr) {
+		return -1
+	}
 	for i := range s[:len(s)-len(substr)+1] {
 		if strings.EqualFold(s[i:i+len(substr)], substr) {
 			return i
