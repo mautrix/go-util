@@ -78,7 +78,11 @@ func Convert(ctx context.Context, input io.Reader, outputFilename string, output
 	cmd.Stderr = exzerolog.NewLogWriter(log).WithLevel(zerolog.WarnLevel)
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("lottieconverter error: %w", err)
+		err = fmt.Errorf("lottieconverter error: %w", err)
+		if ctx.Err() != nil {
+			err = fmt.Errorf("%w and context error %w", err, context.Cause(ctx))
+		}
+		return err
 	}
 	return nil
 }

@@ -96,7 +96,11 @@ func ConvertPathWithDestination(ctx context.Context, inputFile string, outputFil
 	err := cmd.Run()
 	if err != nil {
 		_ = os.Remove(outputFile)
-		return fmt.Errorf("ffmpeg error: %w", err)
+		err = fmt.Errorf("ffmpeg error: %w", err)
+		if ctx.Err() != nil {
+			err = fmt.Errorf("%w and context error %w", err, context.Cause(ctx))
+		}
+		return err
 	}
 
 	return nil
