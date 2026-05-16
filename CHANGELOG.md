@@ -1,4 +1,4 @@
-# v0.9.9 (unreleased)
+# v0.9.9 (2026-05-16)
 
 * *(pkcs7)* Added helpers for implementing PKCS#7 padding and unpadding.
 * *(emojishortcodes)* Added simple data set with shortcodes for each emoji.
