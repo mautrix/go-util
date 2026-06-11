@@ -134,14 +134,6 @@ func isASCIIDigit(c byte) bool {
 // runs on every query and the regexp engine cost adds up.
 func replacePositionalParams(query string) string {
 	dollar := strings.IndexByte(query, '$')
-	for dollar != -1 && (dollar == len(query)-1 || !isASCIIDigit(query[dollar+1])) {
-		next := strings.IndexByte(query[dollar+1:], '$')
-		if next == -1 {
-			dollar = -1
-		} else {
-			dollar += 1 + next
-		}
-	}
 	if dollar == -1 {
 		return query
 	}
