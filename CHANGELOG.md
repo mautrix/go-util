@@ -1,3 +1,13 @@
+# v0.9.10 (2026-06-16)
+
+* *(exhtml)* Added a variant of the standard `EscapeString` which writes the
+  escaped string to a writer instead of returning it as a string.
+* *(dbutil)* Improved performance of replacing query placeholders
+  (thanks to [@jlucaso1] in [#37]).
+
+[@jlucaso1]: https://github.com/jlucaso1
+[#37]: https://github.com/mautrix/go-util/pull/37
+
 # v0.9.9 (2026-05-16)
 
 * *(pkcs7)* Added helpers for implementing PKCS#7 padding and unpadding.
