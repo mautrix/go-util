@@ -1,3 +1,10 @@
+# v0.9.11 (2026-07-16)
+
+* *(exsync)* Added `Has()` method for `Map`.
+* *(exsync)* Changed `Event.Set()` to return whether the event state was
+  changed.
+* *(jsontime)* Changed string types to allow empty string.
+
 # v0.9.10 (2026-06-16)
 
 * *(exhtml)* Added a variant of the standard `EscapeString` which writes the
