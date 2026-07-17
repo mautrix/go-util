@@ -20,9 +20,8 @@ import (
 //go:embed samples/*.sql samples/output/*.sql
 var rawUpgrades embed.FS
 
-func makeTable() (tbl UpgradeTable) {
-	tbl.RegisterFSPath(rawUpgrades, "samples")
-	return
+func makeTable() UpgradeTable {
+	return BuildUpgradeTable().WithFSPath(rawUpgrades, "samples").Finish()
 }
 
 func expectVersionCheck(dialect Dialect, mock sqlmock.Sqlmock, returnVersion, returnCompat int) {

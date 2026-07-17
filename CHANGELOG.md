@@ -1,3 +1,10 @@
+# v0.10.0 (unreleased)
+
+* **Breaking change *(dbutil)*** Replaced Register methods of UpgradeTable
+  with builder-style methods to ensure other packages don't inject upgrades
+  accidentally.
+* *(exsync)* Added `KeyedMutex` type.
+
 # v0.9.11 (2026-07-16)
 
 * *(exsync)* Added `Has()` method for `Map`.
