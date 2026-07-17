@@ -27,7 +27,7 @@ const (
 	TxnModeSQLiteForeignKeysOff TxnMode = "sqlite-fkey-off"
 )
 
-type WIPUpgradeTable []upgrade
+type WIPUpgradeTable []Upgrade
 
 func BuildUpgradeTable() WIPUpgradeTable {
 	return WIPUpgradeTable{}
@@ -37,9 +37,9 @@ func (ut WIPUpgradeTable) Finish() UpgradeTable {
 	return UpgradeTable(ut)
 }
 
-type UpgradeTable []upgrade
+type UpgradeTable []Upgrade
 
-func (ut WIPUpgradeTable) With(from, to, compat int, message string, txn TxnMode, fn upgradeFunc) WIPUpgradeTable {
+func WrapUpgrade(from, to, compat int, message string, txn TxnMode, fn upgradeFunc) Upgrade {
 	if from < 0 {
 		from += to
 	}
@@ -49,7 +49,15 @@ func (ut WIPUpgradeTable) With(from, to, compat int, message string, txn TxnMode
 	if compat <= 0 {
 		compat = to
 	}
-	upg := upgrade{message: message, fn: fn, upgradesTo: to, compatVersion: compat, transaction: txn}
+	return Upgrade{message: message, fn: fn, from: from, upgradesTo: to, compatVersion: compat, transaction: txn}
+}
+
+func (ut WIPUpgradeTable) WithRaw(from, to, compat int, message string, txn TxnMode, fn upgradeFunc) WIPUpgradeTable {
+	return ut.With(WrapUpgrade(from, to, compat, message, txn, fn))
+}
+
+func (ut WIPUpgradeTable) With(upg Upgrade) WIPUpgradeTable {
+	from := upg.from
 	if len(ut) == from {
 		ut = append(ut, upg)
 		return ut
@@ -290,13 +298,13 @@ func (ut WIPUpgradeTable) WithFSPath(fs fullFS, dir string) WIPUpgradeTable {
 			// also do nothing
 		} else if splitName := splitFileNameRegex.FindStringSubmatch(file.Name()); splitName != nil {
 			from, to, compat, message, txn, fn := parseSplitSQLUpgrade(splitName[1], fs, skipNames)
-			ut = ut.With(from, to, compat, message, txn, fn)
+			ut = ut.With(WrapUpgrade(from, to, compat, message, txn, fn))
 		} else if data, err := fs.ReadFile(filepath.Join(dir, file.Name())); err != nil {
 			panic(err)
 		} else if from, to, compat, message, txn, lines, err := parseFileHeader(data); err != nil {
 			panic(fmt.Errorf("dbutil: failed to parse header in %s: %w", file.Name(), err))
 		} else {
-			ut = ut.With(from, to, compat, message, txn, sqlUpgradeFunc(file.Name(), lines))
+			ut = ut.With(WrapUpgrade(from, to, compat, message, txn, sqlUpgradeFunc(file.Name(), lines)))
 		}
 	}
 	return ut
