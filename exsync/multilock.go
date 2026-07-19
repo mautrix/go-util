@@ -21,6 +21,12 @@ type KeyedMutex[Key comparable] struct {
 	locks map[Key]*lockWithRefCount
 }
 
+func NewKeyedMutex[Key comparable]() *KeyedMutex[Key] {
+	return &KeyedMutex[Key]{
+		locks: make(map[Key]*lockWithRefCount),
+	}
+}
+
 func (km *KeyedMutex[Key]) lockSelf() {
 	km.lock.Lock()
 	if km.locks == nil {
@@ -45,7 +51,28 @@ func (km *KeyedMutex[Key]) Lock(k Key) {
 }
 
 func (km *KeyedMutex[Key]) TryLock(k Key) bool {
-	return km.getLock(k).TryLock()
+	l := km.getLock(k)
+	if l.TryLock() {
+		return true
+	}
+
+	km.lock.Lock()
+	l.c--
+	if l.c == 0 {
+		delete(km.locks, k)
+	}
+	km.lock.Unlock()
+	return false
+}
+
+func (km *KeyedMutex[Key]) WithLock(k Key) func() {
+	l := km.getLock(k)
+	l.Lock()
+	return func() {
+		km.lockSelf()
+		defer km.lock.Unlock()
+		km.unlock(k, l)
+	}
 }
 
 func (km *KeyedMutex[Key]) Unlock(k Key) {
@@ -55,6 +82,10 @@ func (km *KeyedMutex[Key]) Unlock(k Key) {
 	if !ok {
 		panic(fmt.Errorf("exsync/multilock: unlock of unlocked key %v", k))
 	}
+	km.unlock(k, l)
+}
+
+func (km *KeyedMutex[Key]) unlock(k Key, l *lockWithRefCount) {
 	// This can happen inside the main lock as it should be instant
 	l.Unlock()
 	l.c--
