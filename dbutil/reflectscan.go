@@ -11,7 +11,7 @@ import (
 	"reflect"
 )
 
-func reflectScan[T any]() ConvertRowFn[*T] {
+func MakeSimpleReflectScanner[T any]() ConvertRowFn[*T] {
 	fields := reflect.VisibleFields(reflect.TypeFor[T]())
 	return func(row Scannable) (*T, error) {
 		t := new(T)
@@ -25,11 +25,11 @@ func reflectScan[T any]() ConvertRowFn[*T] {
 	}
 }
 
-func getFieldMap[T any]() map[string][]int {
+func getFieldMap[T any](structTag string) map[string][]int {
 	fields := reflect.VisibleFields(reflect.TypeFor[T]())
 	m := make(map[string][]int, len(fields))
 	for _, field := range fields {
-		sqlName := field.Tag.Get("sql")
+		sqlName := field.Tag.Get(structTag)
 		if sqlName == "" {
 			sqlName = field.Name
 		}
@@ -38,7 +38,9 @@ func getFieldMap[T any]() map[string][]int {
 	return m
 }
 
-func reflectScanComplicated[T any](rows Rows, err error) (ConvertRowFn[*T], error) {
+const defaultReflectStructTag = "column"
+
+func makeReflectScanner[T any](rows Rows, err error, structTag string) (ConvertRowFn[*T], error) {
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +50,7 @@ func reflectScanComplicated[T any](rows Rows, err error) (ConvertRowFn[*T], erro
 		return nil, fmt.Errorf("reflectscan: failed to get columns: %w", err)
 	}
 	fields = make([][]int, len(columns))
-	fieldMap := getFieldMap[T]()
+	fieldMap := getFieldMap[T](structTag)
 	var ok bool
 	for i, col := range columns {
 		fields[i], ok = fieldMap[col]
@@ -72,13 +74,17 @@ func reflectScanComplicated[T any](rows Rows, err error) (ConvertRowFn[*T], erro
 //
 // This is a simplified implementation that always scans to all struct fields. It does not support any kind of struct tags.
 func NewSimpleReflectRowIter[T any](rows Rows, err error) RowIter[*T] {
-	return reflectScan[T]().NewRowIter(rows, err)
+	return MakeSimpleReflectScanner[T]().NewRowIter(rows, err)
 }
 
-// NewComplicatedReflectRowIter creates a new RowIter that uses reflection to scan rows into the given type.
+// NewReflectRowIter creates a new RowIter that uses reflection to scan rows into the given type.
 //
-// This will use the `sql` struct tag. The column names returned by the db must match an explicit struct tag exactly.
-func NewComplicatedReflectRowIter[T any](rows Rows, err error) RowIter[*T] {
-	fn, err := reflectScanComplicated[T](rows, err)
+// This will use the `column` struct tag. The column names returned by the db must match an explicit struct tag exactly.
+func NewReflectRowIter[T any](rows Rows, err error) RowIter[*T] {
+	return NewReflectRowIterWithTag[T](rows, err, defaultReflectStructTag)
+}
+
+func NewReflectRowIterWithTag[T any](rows Rows, err error, structTag string) RowIter[*T] {
+	fn, err := makeReflectScanner[T](rows, err, structTag)
 	return fn.NewRowIter(rows, err)
 }
