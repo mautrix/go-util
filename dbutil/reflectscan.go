@@ -67,10 +67,13 @@ func reflectFieldScan[T any](columns []string) func(Scannable) (*T, error) {
 // NewComplicatedReflectRowIter creates a new RowIter that uses reflection to scan rows into the given type.
 //
 // It scans into the struct by determining which columns were returned in the query, searching struct fields for the
-// `colname` tag. Columns that have no associated struct field will return ErrUnknownField.
-// Struct fields that have an empty colname tag, or a tag value which is not in the column list, are skipped.
+// `column` tag. Columns that have no associated struct field will return ErrUnknownField.
+// Struct fields that have an empty column tag, or a tag value which is not in the column list, are skipped.
 func NewComplicatedReflectRowIter[T any](rows Rows, err error) RowIter[*T] {
 	var cols []string
-	cols, err = rows.Columns()
+	if err == nil {
+		// Don't overwrite err
+		cols, err = rows.Columns()
+	}
 	return ConvertRowFn[*T](reflectFieldScan[T](cols)).NewRowIter(rows, err)
 }
