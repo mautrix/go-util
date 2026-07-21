@@ -53,10 +53,7 @@ func (*noopScan) Scan(_ any) error {
 
 var noopScanVal = &noopScan{}
 
-func makeReflectScanner[T any](rows Rows, err error, opts ReflectScanOptions) (ConvertRowFn[*T], error) {
-	if err != nil {
-		return nil, err
-	}
+func initReflectScan[T any](rows Rows, opts ReflectScanOptions) ([][]int, error) {
 	columns, err := rows.Columns()
 	if err != nil {
 		return nil, fmt.Errorf("reflectscan: failed to get columns: %w", err)
@@ -69,6 +66,17 @@ func makeReflectScanner[T any](rows Rows, err error, opts ReflectScanOptions) (C
 		if !ok && !opts.IgnoreUnknown {
 			return nil, fmt.Errorf("reflectscan: column %q does not match any struct field", col)
 		}
+	}
+	return fields, nil
+}
+
+func makeReflectScanner[T any](rows Rows, err error, opts ReflectScanOptions) (ConvertRowFn[*T], error) {
+	if err != nil {
+		return nil, err
+	}
+	fields, err := initReflectScan[T](rows, opts)
+	if err != nil {
+		return nil, err
 	}
 	return func(row Scannable) (*T, error) {
 		t := new(T)
