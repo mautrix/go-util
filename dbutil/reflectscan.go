@@ -40,21 +40,33 @@ func getFieldMap[T any](structTag string) map[string][]int {
 
 const defaultReflectStructTag = "column"
 
-func makeReflectScanner[T any](rows Rows, err error, structTag string) (ConvertRowFn[*T], error) {
+type ReflectScanOptions struct {
+	StructTag     string
+	IgnoreUnknown bool
+}
+
+type noopScan struct{}
+
+func (*noopScan) Scan(_ any) error {
+	return nil
+}
+
+var noopScanVal = &noopScan{}
+
+func makeReflectScanner[T any](rows Rows, err error, opts ReflectScanOptions) (ConvertRowFn[*T], error) {
 	if err != nil {
 		return nil, err
 	}
-	var fields [][]int
 	columns, err := rows.Columns()
 	if err != nil {
 		return nil, fmt.Errorf("reflectscan: failed to get columns: %w", err)
 	}
-	fields = make([][]int, len(columns))
-	fieldMap := getFieldMap[T](structTag)
+	fieldMap := getFieldMap[T](opts.StructTag)
+	fields := make([][]int, len(columns))
 	var ok bool
 	for i, col := range columns {
 		fields[i], ok = fieldMap[col]
-		if !ok {
+		if !ok && !opts.IgnoreUnknown {
 			return nil, fmt.Errorf("reflectscan: column %q does not match any struct field", col)
 		}
 	}
@@ -63,7 +75,11 @@ func makeReflectScanner[T any](rows Rows, err error, structTag string) (ConvertR
 		val := reflect.ValueOf(t).Elem()
 		scanInto := make([]any, len(fields))
 		for i, idx := range fields {
-			scanInto[i] = val.FieldByIndex(idx).Addr().Interface()
+			if idx == nil {
+				scanInto[i] = noopScanVal
+			} else {
+				scanInto[i] = val.FieldByIndex(idx).Addr().Interface()
+			}
 		}
 		err := row.Scan(scanInto...)
 		return t, err
@@ -81,10 +97,10 @@ func NewSimpleReflectRowIter[T any](rows Rows, err error) RowIter[*T] {
 //
 // This will use the `column` struct tag. The column names returned by the db must match an explicit struct tag exactly.
 func NewReflectRowIter[T any](rows Rows, err error) RowIter[*T] {
-	return NewReflectRowIterWithTag[T](rows, err, defaultReflectStructTag)
+	return NewReflectRowIterWithOptions[T](rows, err, ReflectScanOptions{StructTag: defaultReflectStructTag})
 }
 
-func NewReflectRowIterWithTag[T any](rows Rows, err error, structTag string) RowIter[*T] {
-	fn, err := makeReflectScanner[T](rows, err, structTag)
+func NewReflectRowIterWithOptions[T any](rows Rows, err error, opts ReflectScanOptions) RowIter[*T] {
+	fn, err := makeReflectScanner[T](rows, err, opts)
 	return fn.NewRowIter(rows, err)
 }
