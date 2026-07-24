@@ -1,4 +1,4 @@
-// Copyright (c) 2024 Tulir Asokan
+// Copyright (c) 2026 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,6 +11,9 @@ import (
 	"reflect"
 )
 
+// MakeSimpleReflectScanner creates a ConvertRowFn that uses reflection to scan rows into the given type.
+//
+// This is a simplified implementation that always scans to all struct fields. It does not support any kind of struct tags.
 func MakeSimpleReflectScanner[T any]() ConvertRowFn[*T] {
 	fields := reflect.VisibleFields(reflect.TypeFor[T]())
 	return func(row Scannable) (*T, error) {
@@ -91,6 +94,9 @@ func makeReflectScannerWithFields[T any](fields [][]int) ConvertRowFn[*T] {
 	}
 }
 
+// MakeReflectScanner creates a ConvertRowFn that uses reflection to scan rows into the given type.
+//
+// To detect column names automatically, use [NewReflectRowIter] instead.
 func MakeReflectScanner[T any](columns []string, opts ...ReflectScanOptions) (ConvertRowFn[*T], error) {
 	var opt ReflectScanOptions
 	if len(opts) == 1 {
@@ -126,6 +132,7 @@ func NewSimpleReflectRowIter[T any](rows Rows, err error) RowIter[*T] {
 // NewReflectRowIter creates a new RowIter that uses reflection to scan rows into the given type.
 //
 // This will use the `column` struct tag. The column names returned by the db must match an explicit struct tag exactly.
+// Use [NewReflectRowIterWithOptions] to customize the struct tag or ignore unknown columns.
 func NewReflectRowIter[T any](rows Rows, err error) RowIter[*T] {
 	return NewReflectRowIterWithOptions[T](rows, err, ReflectScanOptions{StructTag: defaultReflectStructTag})
 }
