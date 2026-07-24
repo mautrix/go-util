@@ -53,11 +53,15 @@ func (*noopScan) Scan(_ any) error {
 
 var noopScanVal = &noopScan{}
 
-func initReflectScan[T any](rows Rows, opts ReflectScanOptions) ([][]int, error) {
+func initReflectScanWithRows[T any](rows Rows, opts ReflectScanOptions) ([][]int, error) {
 	columns, err := rows.Columns()
 	if err != nil {
 		return nil, fmt.Errorf("reflectscan: failed to get columns: %w", err)
 	}
+	return initReflectScanWithColumns[T](columns, opts)
+}
+
+func initReflectScanWithColumns[T any](columns []string, opts ReflectScanOptions) ([][]int, error) {
 	fieldMap := getFieldMap[T](opts.StructTag)
 	fields := make([][]int, len(columns))
 	var ok bool
@@ -70,14 +74,7 @@ func initReflectScan[T any](rows Rows, opts ReflectScanOptions) ([][]int, error)
 	return fields, nil
 }
 
-func makeReflectScanner[T any](rows Rows, err error, opts ReflectScanOptions) (ConvertRowFn[*T], error) {
-	if err != nil {
-		return nil, err
-	}
-	fields, err := initReflectScan[T](rows, opts)
-	if err != nil {
-		return nil, err
-	}
+func makeReflectScannerWithFields[T any](fields [][]int) ConvertRowFn[*T] {
 	return func(row Scannable) (*T, error) {
 		t := new(T)
 		val := reflect.ValueOf(t).Elem()
@@ -91,7 +88,32 @@ func makeReflectScanner[T any](rows Rows, err error, opts ReflectScanOptions) (C
 		}
 		err := row.Scan(scanInto...)
 		return t, err
-	}, nil
+	}
+}
+
+func MakeReflectScanner[T any](columns []string, opts ...ReflectScanOptions) (ConvertRowFn[*T], error) {
+	var opt ReflectScanOptions
+	if len(opts) == 1 {
+		opt = opts[0]
+	} else if len(opts) > 1 {
+		return nil, fmt.Errorf("reflectscan: only one ReflectScanOptions is allowed")
+	}
+	fields, err := initReflectScanWithColumns[T](columns, opt)
+	if err != nil {
+		return nil, err
+	}
+	return makeReflectScannerWithFields[T](fields), nil
+}
+
+func makeReflectScanner[T any](rows Rows, err error, opts ReflectScanOptions) (ConvertRowFn[*T], error) {
+	if err != nil {
+		return nil, err
+	}
+	fields, err := initReflectScanWithRows[T](rows, opts)
+	if err != nil {
+		return nil, err
+	}
+	return makeReflectScannerWithFields[T](fields), nil
 }
 
 // NewSimpleReflectRowIter creates a new RowIter that uses reflection to scan rows into the given type.
