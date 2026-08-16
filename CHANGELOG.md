@@ -3,6 +3,7 @@
 * **Breaking change *(dbutil)*** Replaced Register methods of UpgradeTable
   with builder-style methods to ensure other packages don't inject upgrades
   accidentally.
+* *(dbutil)* Added more advanced reflect scanners that read struct tags.
 * *(exsync)* Added `KeyedMutex` type.
 
 # v0.9.11 (2026-07-16)
