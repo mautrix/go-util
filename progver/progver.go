@@ -34,7 +34,13 @@ type ProgramVersion struct {
 }
 
 func (pv ProgramVersion) MarkdownDescription() string {
-	return fmt.Sprintf("[%s](%s) %s (%s)", pv.Name, pv.URL, pv.LinkifiedVersion, pv.BuildTime.Format(time.RFC1123))
+	var builtWith string
+	if pv.BuildTime.IsZero() {
+		builtWith = fmt.Sprintf("built with %s", runtime.Version())
+	} else {
+		builtWith = fmt.Sprintf("built at %s with %s", pv.BuildTime.Format(time.RFC1123), runtime.Version())
+	}
+	return fmt.Sprintf("[%s](%s) %s (%s)", pv.Name, pv.URL, pv.LinkifiedVersion, builtWith)
 }
 
 func findCommitFromBuildInfo() string {
