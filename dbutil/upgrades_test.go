@@ -140,3 +140,28 @@ func TestDatabase_Upgrade_CompatCheck(t *testing.T) {
 	t.Run("SQLite", testCompatCheck(SQLite))
 	t.Run("Postgres", testCompatCheck(Postgres))
 }
+
+func TestDatabase_CheckDatabaseOwnerSkipsCreateWhenTableExists(t *testing.T) {
+	conn, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+	require.NoError(t, err)
+
+	db := &Database{
+		RawDB:               conn,
+		Log:                 NoopLogger,
+		Owner:               "megabridge/mautrix-meta",
+		Dialect:             Postgres,
+		IgnoreForeignTables: true,
+		txnCtxKey:           contextKey(nextContextKeyDatabaseTransaction.Add(1)),
+	}
+	db.LoggingDB.UnderlyingExecable = conn
+	db.LoggingDB.db = db
+
+	mock.ExpectQuery(tableExistsPostgres).
+		WithArgs("database_owner").
+		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+	mock.ExpectQuery("SELECT owner FROM database_owner WHERE key=0").
+		WillReturnRows(sqlmock.NewRows([]string{"owner"}).AddRow("megabridge/mautrix-meta"))
+
+	require.NoError(t, db.checkDatabaseOwner(context.Background()))
+	require.NoError(t, mock.ExpectationsWereMet())
+}
