@@ -1,4 +1,12 @@
-# v0.10.0 (unreleased)
+# v0.10.1 (2026-09-16)
+
+* Bumped minimum Go version to 1.26.
+* *(glob)* Fixed `Compile` returning a typed nil if regex compilation failed.
+* *(progver)* Changed `MarkdownDescription` to be consistent with the format of
+  `VersionDescription`.
+* *(fallocate)* Fixed syscall flags on Linux to not modify logical file size.
+
+# v0.10.0 (2026-08-16)
 
 * **Breaking change *(dbutil)*** Replaced Register methods of UpgradeTable
   with builder-style methods to ensure other packages don't inject upgrades
