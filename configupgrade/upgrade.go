@@ -119,25 +119,9 @@ func Do(configPath string, save bool, upgrader BaseUpgrader, additional ...Upgra
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to read config: %w", err)
 	}
-	var base, cfg yaml.Node
-	err = yaml.Unmarshal([]byte(upgrader.GetBase()), &base)
+	output, err := DoBytes(sourceData, upgrader, additional...)
 	if err != nil {
-		return sourceData, false, fmt.Errorf("failed to unmarshal example config: %w", err)
-	}
-	err = yaml.Unmarshal(sourceData, &cfg)
-	if err != nil {
-		return sourceData, false, fmt.Errorf("failed to unmarshal config: %w", err)
-	}
-
-	helper := NewHelper(&base, &cfg)
-	helper.apply(upgrader)
-	for _, add := range additional {
-		helper.apply(add)
-	}
-
-	output, err := yaml.Marshal(&base)
-	if err != nil {
-		return sourceData, false, fmt.Errorf("failed to marshal updated config: %w", err)
+		return output, false, err
 	}
 	if save {
 		var tempFile *os.File
@@ -157,4 +141,28 @@ func Do(configPath string, save bool, upgrader BaseUpgrader, additional ...Upgra
 		}
 	}
 	return output, true, nil
+}
+
+func DoBytes(sourceData []byte, upgrader BaseUpgrader, additional ...Upgrader) ([]byte, error) {
+	var base, cfg yaml.Node
+	err := yaml.Unmarshal([]byte(upgrader.GetBase()), &base)
+	if err != nil {
+		return sourceData, fmt.Errorf("failed to unmarshal example config: %w", err)
+	}
+	err = yaml.Unmarshal(sourceData, &cfg)
+	if err != nil {
+		return sourceData, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	helper := NewHelper(&base, &cfg)
+	helper.apply(upgrader)
+	for _, add := range additional {
+		helper.apply(add)
+	}
+
+	output, err := yaml.Marshal(&base)
+	if err != nil {
+		return sourceData, fmt.Errorf("failed to marshal updated config: %w", err)
+	}
+	return output, nil
 }
