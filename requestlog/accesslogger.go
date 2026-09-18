@@ -10,6 +10,8 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/hlog"
+
+	"go.mau.fi/util/exerrors"
 )
 
 const (
@@ -54,7 +56,7 @@ func AccessLogger(opts Options) func(http.Handler) http.Handler {
 
 			start := time.Now()
 
-			fillRequestLog := func(requestLog *zerolog.Event) {
+			fillRequestLog := func(requestLog *zerolog.Event) *zerolog.Event {
 				requestDuration := time.Since(start)
 
 				if userAgent := r.UserAgent(); userAgent != "" {
@@ -92,6 +94,7 @@ func AccessLogger(opts Options) func(http.Handler) http.Handler {
 				if crw.ResponseBody != nil {
 					logRequestMaybeJSON(requestLog, "response_body", crw.ResponseBody.Bytes())
 				}
+				return requestLog
 			}
 
 			if opts.Recover {
@@ -106,16 +109,9 @@ func AccessLogger(opts Options) func(http.Handler) http.Handler {
 							w.WriteHeader(crw.StatusCode)
 						}
 
-						requestLog := log.Error()
-						fillRequestLog(requestLog)
-
-						requestLog.Bytes(zerolog.ErrorStackFieldName, debug.Stack())
-						if err, ok := rvr.(error); ok {
-							requestLog.Err(err)
-						} else {
-							requestLog.Any(zerolog.ErrorFieldName, rvr)
-						}
-						requestLog.Msg("Access")
+						fillRequestLog(log.Err(exerrors.RecoverToError(rvr))).
+							Bytes(zerolog.ErrorStackFieldName, debug.Stack()).
+							Msg("Access")
 					}
 				}()
 			}
@@ -136,9 +132,7 @@ func AccessLogger(opts Options) func(http.Handler) http.Handler {
 			} else {
 				requestLog = log.Info()
 			}
-
-			fillRequestLog(requestLog)
-			requestLog.Msg("Access")
+			fillRequestLog(requestLog).Msg("Access")
 		})
 	}
 }
