@@ -17,7 +17,7 @@ import (
 )
 
 func TestString_Length(t *testing.T) {
-	for i := 0; i < 256; i++ {
+	for i := range 256 {
 		require.Len(t, random.String(i), i)
 	}
 }
@@ -26,7 +26,7 @@ var stringRegex = regexp.MustCompile(`^[0-9A-Za-z]*$`)
 var tokenRegex = regexp.MustCompile(`^.+?_[0-9A-Za-z]*_[0-9A-Za-z]{6}$`)
 
 func TestString_Content(t *testing.T) {
-	for i := 0; i < 256; i++ {
+	for i := range 256 {
 		require.Regexp(t, stringRegex, random.String(i))
 	}
 }
@@ -35,7 +35,7 @@ var prefixes = []string{"ght", "hut", "meow", "FOOBAR", "🐈️"}
 
 func TestToken(t *testing.T) {
 	for _, prefix := range prefixes {
-		for i := 0; i < 256; i++ {
+		for i := range 256 {
 			t.Run(fmt.Sprintf("%s-%d", prefix, i), func(t *testing.T) {
 				// Format: prefix_random_checksum
 				// Length: prefix (4) + 1 + random (i) + 1 + checksum (6)
@@ -49,7 +49,7 @@ func TestToken(t *testing.T) {
 
 func TestGetTokenPrefix(t *testing.T) {
 	for _, prefix := range prefixes {
-		for i := 0; i < 256; i++ {
+		for i := range 256 {
 			t.Run(fmt.Sprintf("%s-%d", prefix, i), func(t *testing.T) {
 				token := random.Token(prefix, i)
 				require.Equal(t, prefix, random.GetTokenPrefix(token))

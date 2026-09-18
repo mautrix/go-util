@@ -47,7 +47,7 @@ func TestPKCS7(t *testing.T) {
 }
 
 func TestPKCS7_RoundtripWithAESBlockSize(t *testing.T) {
-	for i := 0; i < 1024; i++ {
+	for i := range 1024 {
 		input := bytes.Repeat([]byte{byte(i)}, i)
 		padded := pkcs7.Pad(input, aes.BlockSize)
 		assert.Zero(t, len(padded)%aes.BlockSize, "padded length is not a multiple of the AES block size")

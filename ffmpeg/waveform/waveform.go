@@ -102,7 +102,7 @@ func clamp(data []int, to int) {
 func parseWaveformImage(img image.Image, targetMaxVal int) []int {
 	bounds := img.Bounds()
 	out := make([]int, bounds.Dx())
-	for x := 0; x < len(out); x++ {
+	for x := range out {
 		out[x] = findAvgMinMax(img, bounds, x, targetMaxVal)
 	}
 	clamp(out, targetMaxVal)

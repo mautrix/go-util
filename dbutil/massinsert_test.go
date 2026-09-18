@@ -76,7 +76,7 @@ func TestMassInsertBuilder_Build_CompareWithManual(t *testing.T) {
 func makeBenchmarkData[T dbutil.Array](n int) []AbstractMassInsertable[T] {
 	outArr := make([]AbstractMassInsertable[T], n)
 	dataLen := len(outArr[0].Data)
-	for i := 0; i < dataLen; i++ {
+	for i := range dataLen {
 		var val any
 		switch rand.Intn(4) {
 		case 0:
@@ -88,7 +88,7 @@ func makeBenchmarkData[T dbutil.Array](n int) []AbstractMassInsertable[T] {
 		case 3:
 			val = random.String(16)
 		}
-		for j := 0; j < len(outArr); j++ {
+		for j := range outArr {
 			outArr[j].Data[i] = val
 		}
 	}

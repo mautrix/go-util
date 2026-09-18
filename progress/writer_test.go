@@ -17,7 +17,7 @@ func TestWriter(t *testing.T) {
 		progressUpdates = append(progressUpdates, processedBytes)
 	})
 
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		_, err := io.Copy(progressWriter, bytes.NewReader(bytes.Repeat([]byte{42}, 256*1024)))
 		require.NoError(t, err)
 	}
