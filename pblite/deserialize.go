@@ -183,14 +183,27 @@ func deserializeOne(val any, index int, ref protoreflect.Message, insideList pro
 }
 
 func deserializeFromSlice(data []any, ref protoreflect.Message) error {
+	var extraFields map[string]any
+	if len(data) > 0 {
+		if fields, ok := data[len(data)-1].(map[string]any); ok {
+			extraFields = fields
+			data = data[:len(data)-1]
+		}
+	}
 	for i := 0; i < ref.Descriptor().Fields().Len(); i++ {
 		fieldDescriptor := ref.Descriptor().Fields().Get(i)
 		index := int(fieldDescriptor.Number()) - 1
-		if index < 0 || index >= len(data) || data[index] == nil {
+		var val any
+		if extraFields != nil {
+			val = extraFields[strconv.Itoa(index+1)]
+		}
+		if val == nil && index >= 0 && index < len(data) {
+			val = data[index]
+		}
+		if val == nil {
 			continue
 		}
 
-		val := data[index]
 		outputVal, err := deserializeOne(val, index, ref, nil, fieldDescriptor)
 		if err != nil {
 			return err
