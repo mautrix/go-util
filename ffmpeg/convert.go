@@ -23,6 +23,7 @@ import (
 var ffmpegDefaultParams = []string{"-hide_banner", "-loglevel", "warning"}
 
 var ffmpegPath, ffprobePath string
+var executor func(context.Context, []string) error
 
 func init() {
 	ffmpegPath, _ = exec.LookPath("ffmpeg")
@@ -35,6 +36,10 @@ func init() {
 // or if [SetPath] has been called explicitly with a non-empty path.
 func Supported() bool {
 	return ffmpegPath != ""
+}
+
+func SetExecutor(fn func(context.Context, []string) error) {
+	executor = fn
 }
 
 // SetPath overrides the path to the ffmpeg binary.
@@ -88,12 +93,17 @@ func ConvertPathWithDestination(ctx context.Context, inputFile string, outputFil
 	args = append(args, outputArgs...)
 	args = append(args, outputFile)
 
-	cmd := exec.CommandContext(ctx, ffmpegPath, args...)
-	ctxLog := zerolog.Ctx(ctx).With().Str("command", "ffmpeg").Logger()
-	logWriter := exzerolog.NewLogWriter(ctxLog).WithLevel(zerolog.WarnLevel)
-	cmd.Stdout = logWriter
-	cmd.Stderr = logWriter
-	err := cmd.Run()
+	var err error
+	if executor != nil {
+		err = executor(ctx, args)
+	} else {
+		cmd := exec.CommandContext(ctx, ffmpegPath, args...)
+		ctxLog := zerolog.Ctx(ctx).With().Str("command", "ffmpeg").Logger()
+		logWriter := exzerolog.NewLogWriter(ctxLog).WithLevel(zerolog.WarnLevel)
+		cmd.Stdout = logWriter
+		cmd.Stderr = logWriter
+		err = cmd.Run()
+	}
 	if err != nil {
 		_ = os.Remove(outputFile)
 		err = fmt.Errorf("ffmpeg error: %w", err)
