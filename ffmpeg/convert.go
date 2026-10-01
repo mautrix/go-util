@@ -1,4 +1,5 @@
 // Copyright (c) 2022 Sumner Evans
+// Copyright (c) 2026 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -37,6 +38,28 @@ func Supported() bool {
 	return ffmpegPath != ""
 }
 
+var executor = func(ctx context.Context, args []string) error {
+	if ffmpegPath == "" {
+		return fmt.Errorf("ffmpeg not found in $PATH")
+	}
+	cmd := exec.CommandContext(ctx, ffmpegPath, args...)
+	ctxLog := zerolog.Ctx(ctx).With().Str("command", "ffmpeg").Logger()
+	logWriter := exzerolog.NewLogWriter(ctxLog).WithLevel(zerolog.WarnLevel)
+	cmd.Stdout = logWriter
+	cmd.Stderr = logWriter
+	return cmd.Run()
+}
+
+// SetExecutor overrides the function used to create the ffmpeg subprocess.
+//
+// The function gets the full list of command-line arguments to pass to ffmpeg,
+// and is expected to return an error if the command returns a non-zero exit code.
+//
+// Note that [Supported] will still return false if ffmpeg wasn't found in $PATH and [SetPath] wasn't called.
+func SetExecutor(fn func(context.Context, []string) error) {
+	executor = fn
+}
+
 // SetPath overrides the path to the ffmpeg binary.
 func SetPath(path string) {
 	ffmpegPath = path
@@ -46,7 +69,7 @@ func ProbeSupported() bool {
 	return ffprobePath != ""
 }
 
-// SetPath overrides the path to the ffprobe binary.
+// SetProbePath overrides the path to the ffprobe binary.
 func SetProbePath(path string) {
 	ffprobePath = path
 }
@@ -88,12 +111,7 @@ func ConvertPathWithDestination(ctx context.Context, inputFile string, outputFil
 	args = append(args, outputArgs...)
 	args = append(args, outputFile)
 
-	cmd := exec.CommandContext(ctx, ffmpegPath, args...)
-	ctxLog := zerolog.Ctx(ctx).With().Str("command", "ffmpeg").Logger()
-	logWriter := exzerolog.NewLogWriter(ctxLog).WithLevel(zerolog.WarnLevel)
-	cmd.Stdout = logWriter
-	cmd.Stderr = logWriter
-	err := cmd.Run()
+	err := executor(ctx, args)
 	if err != nil {
 		_ = os.Remove(outputFile)
 		err = fmt.Errorf("ffmpeg error: %w", err)
