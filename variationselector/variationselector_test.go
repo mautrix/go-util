@@ -22,7 +22,7 @@ import (
 )
 
 func TestAdd_Full(t *testing.T) {
-	resp := get(t, "https://raw.githubusercontent.com/milesj/emojibase/master/packages/data/en/data.raw.json")
+	resp := get(t, "https://raw.githubusercontent.com/milesj/emojibase/emojibase%4017.0.0/packages/data/en/data.raw.json")
 	var emojis []emojibaseEmoji
 	exerrors.PanicIfNotNil(json.NewDecoder(resp.Body).Decode(&emojis))
 	for _, e := range emojis {

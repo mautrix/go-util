@@ -1,3 +1,16 @@
+# v0.11.0 (2026-10-16)
+
+* *(configupgrade)* Added `DoBytes` to upgrade an in-memory config rather than
+  reading from a file.
+* *(exerrors)* Added `RecoverToError` helper for converting a panic value to
+  a proper error.
+* *(pblite)* Added support for decoding trailing objects.
+* *(exhttp)* Added support for detecting some Windows-specific network errors.
+* *(ffmpeg)* Added option to override how the `ffmpeg` command is executed.
+* *(exsync)* Added unbounded queue type.
+* *(exsync)* Added channel-based mutex type for use with contexts.
+* *(exmaps,exsync)* Added helpers for creating prefilled sets.
+
 # v0.10.1 (2026-09-16)
 
 * Bumped minimum Go version to 1.26.

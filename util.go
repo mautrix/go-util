@@ -6,8 +6,8 @@
 
 package util
 
-const Version = "v0.10.1"
+const Version = "v0.11.0"
 
 func VersionArray() [3]uint {
-	return [3]uint{0, 10, 1}
+	return [3]uint{0, 11, 0}
 }
