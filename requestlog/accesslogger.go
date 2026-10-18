@@ -37,11 +37,24 @@ type Options struct {
 	Recover bool
 	// A filter to not log certain requests, if not given, FilterHealthRequests will be used
 	Filter func(r *http.Request, crw *CountingResponseWriter) bool
+
+	OKLevel          *zerolog.Level
+	ClientErrorLevel *zerolog.Level
+	ServerErrorLevel *zerolog.Level
 }
 
 func AccessLogger(opts Options) func(http.Handler) http.Handler {
 	if opts.Filter == nil {
 		opts.Filter = FilterHealthRequests
+	}
+	if opts.OKLevel == nil {
+		opts.OKLevel = new(zerolog.InfoLevel)
+	}
+	if opts.ClientErrorLevel == nil {
+		opts.ClientErrorLevel = new(zerolog.WarnLevel)
+	}
+	if opts.ServerErrorLevel == nil {
+		opts.ServerErrorLevel = new(zerolog.ErrorLevel)
 	}
 
 	return func(next http.Handler) http.Handler {
@@ -124,15 +137,15 @@ func AccessLogger(opts Options) func(http.Handler) http.Handler {
 				return
 			}
 
-			var requestLog *zerolog.Event
+			var level zerolog.Level
 			if crw.StatusCode >= 500 {
-				requestLog = log.Error()
+				level = *opts.ServerErrorLevel
 			} else if crw.StatusCode >= 400 {
-				requestLog = log.Warn()
+				level = *opts.ClientErrorLevel
 			} else {
-				requestLog = log.Info()
+				level = *opts.OKLevel
 			}
-			fillRequestLog(requestLog).Msg("Access")
+			fillRequestLog(log.WithLevel(level)).Msg("Access")
 		})
 	}
 }
