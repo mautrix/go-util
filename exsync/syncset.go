@@ -177,6 +177,9 @@ func (s *Set[T]) AsList() []T {
 
 func (s *Set[T]) Iter() iter.Seq[T] {
 	return func(yield func(T) bool) {
+		if s == nil {
+			return
+		}
 		s.l.RLock()
 		defer s.l.RUnlock()
 		for item := range s.m {
