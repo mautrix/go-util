@@ -8,6 +8,7 @@ package exsync
 
 import (
 	"iter"
+	"maps"
 	"sync"
 
 	"go.mau.fi/util/exmaps"
@@ -184,4 +185,14 @@ func (s *Set[T]) Iter() iter.Seq[T] {
 			}
 		}
 	}
+}
+
+func (s *Set[T]) Clone() *Set[T] {
+	if s == nil {
+		return nil
+	}
+	s.l.RLock()
+	newSet := NewSetWithMap[T](maps.Clone(s.m))
+	s.l.RUnlock()
+	return newSet
 }
