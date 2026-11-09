@@ -130,6 +130,7 @@ func Do(configPath string, save bool, upgrader BaseUpgrader, additional ...Upgra
 			return output, true, fmt.Errorf("failed to create temp file for writing config: %w", err)
 		}
 		_, err = tempFile.Write(output)
+		_ = tempFile.Close()
 		if err != nil {
 			_ = os.Remove(tempFile.Name())
 			return output, true, fmt.Errorf("failed to write updated config to temp file: %w", err)
