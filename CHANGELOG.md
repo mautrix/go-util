@@ -1,3 +1,12 @@
+# v0.11.1 (2026-11-16)
+
+* *(requestlog)* Added options to configure log levels used for requests.
+* *(exsync)* Added `Clone` method for `Set`.
+* *(exsync)* Added nil safety for `Set.Iter`.
+* *(exsync)* Changed `Set.ReplaceAll` to return the old data instead of
+  discarding it.
+* *(configupgrade)* Fixed temp file handle being left behind.
+
 # v0.11.0 (2026-10-16)
 
 * *(configupgrade)* Added `DoBytes` to upgrade an in-memory config rather than
