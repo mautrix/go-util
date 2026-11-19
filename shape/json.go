@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-//go:build goexperiment.jsonv2 || go1.27
+//go:build go1.27
 
 package shape
 
@@ -24,8 +24,8 @@ import (
 // fails to parse or has data after its first value returns what was read
 // before the error followed by "invalid".
 //
-// JSON needs encoding/json/jsontext, so it returns nil unless built with Go
-// 1.27 or newer, or with GOEXPERIMENT=jsonv2.
+// JSON needs encoding/json/jsontext, so it returns nil when built with Go
+// 1.26.
 func JSON(data []byte, maxDepth int) []string {
 	if len(bytes.TrimSpace(data)) == 0 {
 		return nil
