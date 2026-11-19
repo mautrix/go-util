@@ -9,6 +9,7 @@ package l10n_test
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -60,6 +61,12 @@ func TestRenderInvalidParams(t *testing.T) {
 
 	gotErr = nil
 	msg = tplPlural.Render(l10n.Params{"count": "3"})
+	assert.False(t, msg.IsLocalizable())
+	assert.Error(t, gotErr)
+
+	gotErr = nil
+	msg = tplPlural.Render(l10n.Params{"count": time.Second})
+	assert.Equal(t, "You have 1s devices", msg.Text)
 	assert.False(t, msg.IsLocalizable())
 	assert.Error(t, gotErr)
 

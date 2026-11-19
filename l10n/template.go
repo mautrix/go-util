@@ -163,12 +163,18 @@ func (t *Template) normalizeParams(params Params) (Params, error) {
 			continue
 		}
 		rv := reflect.ValueOf(val)
-		switch rv.Kind() {
-		case reflect.String:
+		_, isStringer := val.(fmt.Stringer)
+		_, isError := val.(error)
+		switch kind := rv.Kind(); {
+		case (isStringer || isError) && kind != reflect.String:
+			// e.g. time.Duration would otherwise render as a bare number
+			errs = append(errs, fmt.Sprintf("param %q has unsupported type %T", name, val))
+			normalized[name] = fmt.Sprint(val)
+		case kind == reflect.String:
 			normalized[name] = rv.String()
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		case kind >= reflect.Int && kind <= reflect.Int64:
 			normalized[name] = rv.Int()
-		case reflect.Uint8, reflect.Uint16, reflect.Uint32:
+		case kind >= reflect.Uint8 && kind <= reflect.Uint32:
 			normalized[name] = int64(rv.Uint())
 		default:
 			errs = append(errs, fmt.Sprintf("param %q has unsupported type %T", name, val))
