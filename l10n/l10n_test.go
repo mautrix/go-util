@@ -38,6 +38,16 @@ func TestRender(t *testing.T) {
 	assert.Equal(t, "Items", tplPluralNoBody.Render(l10n.Params{"n": 0}).Text)
 }
 
+type namedString string
+type namedInt uint16
+
+func TestRenderNamedTypes(t *testing.T) {
+	msg := tplParams.Render(l10n.Params{"name": namedString("+1555"), "device": "Chrome"})
+	assert.Equal(t, "+1555", msg.Params["name"])
+	assert.True(t, msg.IsLocalizable())
+	assert.Equal(t, int64(2), tplPlural.Render(l10n.Params{"count": namedInt(2)}).Params["count"])
+}
+
 func TestRenderInvalidParams(t *testing.T) {
 	orig := l10n.RenderErrorHandler
 	defer func() { l10n.RenderErrorHandler = orig }()
