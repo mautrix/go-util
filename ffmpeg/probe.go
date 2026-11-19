@@ -108,20 +108,38 @@ type ProbeResult struct {
 
 var ffprobeDefaultParams = []string{"-hide_banner", "-loglevel", "warning", "-print_format", "json", "-show_format", "-show_streams"}
 
-func Probe(ctx context.Context, path string) (*ProbeResult, error) {
+var probeExecutor = func(ctx context.Context, args []string) ([]byte, error) {
+	if ffprobePath == "" {
+		return nil, fmt.Errorf("ffprobe not found in $PATH")
+	}
 	ctxLog := zerolog.Ctx(ctx).With().Str("command", "ffmpeg").Logger()
 	logWriter := exzerolog.NewLogWriter(ctxLog).WithLevel(zerolog.WarnLevel)
-	cmd := exec.CommandContext(ctx, ffprobePath, append(ffprobeDefaultParams, path)...)
+	cmd := exec.CommandContext(ctx, ffprobePath, args...)
 	var stdout bytes.Buffer
 	cmd.Stderr = logWriter
 	cmd.Stdout = &stdout
 	err := cmd.Run()
+	return stdout.Bytes(), err
+}
+
+// SetProbeExecutor overrides the function used to create the ffprobe subprocess.
+//
+// The function gets the full list of command-line arguments to pass to ffprobe,
+// and is expected to return the stdout of the command, or an error if the command returns a non-zero exit code.
+//
+// Note that [ProbeSupported] will still return false if ffprobe wasn't found in $PATH and [SetProbePath] wasn't called.
+func SetProbeExecutor(fn func(context.Context, []string) ([]byte, error)) {
+	probeExecutor = fn
+}
+
+func Probe(ctx context.Context, path string) (*ProbeResult, error) {
+	stdout, err := probeExecutor(ctx, append(ffprobeDefaultParams, path))
 	if err != nil {
 		return nil, fmt.Errorf("failed to run ffprobe: %w", err)
 	}
 
 	var result ProbeResult
-	err = json.NewDecoder(&stdout).Decode(&result)
+	err = json.Unmarshal(stdout, &result)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse ffmpeg output: %w", err)
 	}
