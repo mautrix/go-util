@@ -24,7 +24,7 @@ func XML(data []byte, maxDepth int) []string {
 		return nil
 	}
 	dec := xml.NewDecoder(bytes.NewReader(data))
-	dec.Strict = false
+	dec.Entity = xml.HTMLEntity
 	dec.CharsetReader = func(_ string, input io.Reader) (io.Reader, error) {
 		return input, nil
 	}

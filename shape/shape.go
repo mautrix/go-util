@@ -10,8 +10,9 @@
 // logged because it carries message content or credentials.
 //
 // A name is only listed when it looks like a schema name rather than data: at
-// most 64 ASCII letters, digits, '_', '-', '.' and '$', with no more than four
-// digits, and split on those separators into words that read like identifiers.
+// most 64 ASCII letters, digits, '_', '-', '.' and '$', with at least one letter
+// and no more than four digits, and split on those separators into words that
+// read like identifiers.
 // In a camel case word, the capitals may be at most half its lowercase letters,
 // rounded up, with each run of capitals counting as at most two. A word in all
 // capitals may have at most 12 letters, and no digits unless it's at most five
@@ -67,7 +68,7 @@ func isSafeName(name string) bool {
 			return false
 		}
 	}
-	if digits > maxNameDigits {
+	if digits > maxNameDigits || strings.Trim(name, "0123456789"+nameSeparators) == "" {
 		return false
 	}
 	for word := range strings.FieldsFuncSeq(name, func(r rune) bool { return strings.ContainsRune(nameSeparators, r) }) {
@@ -250,7 +251,7 @@ func URL(raw string) string {
 }
 
 func isSafeScheme(scheme string) bool {
-	if len(scheme) > maxSchemeLen {
+	if len(scheme) > maxSchemeLen || !isSafeName(strings.ReplaceAll(scheme, "+", "-")) {
 		return false
 	}
 	for i := 0; i < len(scheme); i++ {
@@ -277,7 +278,7 @@ func writeHost(sb *strings.Builder, host string) {
 		if i > 0 {
 			sb.WriteByte('.')
 		}
-		if label != "" && strings.Trim(label, "0123456789") != "" && isSafeName(label) {
+		if isSafeName(label) {
 			sb.WriteString(label)
 		} else {
 			writeLength(sb, label)
