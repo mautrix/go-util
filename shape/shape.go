@@ -15,8 +15,8 @@
 // read like identifiers.
 // In a camel case word, the capitals may be at most half its lowercase letters,
 // rounded up, with each run of capitals counting as at most two. A word in all
-// capitals may have at most 12 letters, and no digits unless it's at most five
-// characters long. A digit may only be followed by a capital that starts a new
+// capitals may have at most 12 letters, or 8 when it's the whole name, and no
+// digits unless it's at most five characters long. A digit may only be followed by a capital that starts a new
 // word, except in short lowercase words like "e2ee". This rejects nearly all
 // random tokens over 16 characters, but short tokens, usernames and file names
 // can still pass, so it doesn't make it safe to describe payloads whose keys
@@ -26,8 +26,8 @@
 //
 // Results are sorted and deduplicated, so equal shapes log identically. At most
 // the first 64 names in sorted order are listed and the rest are counted in "N
-// other" too. When more than 1024 distinct names are seen, the count becomes
-// "960+ other".
+// other" too. When JSON or XML has more than 1024 distinct names, the count
+// becomes "960+ other".
 //
 // Use the redact package instead when values need to be correlated between log
 // lines.
@@ -50,6 +50,7 @@ const (
 	maxNameDigits  = 4
 	maxShortWord   = 5
 	maxCapsWord    = 12
+	maxCapsName    = 8
 	maxSchemeLen   = 16
 	nameSeparators = "_-.$"
 )
@@ -71,15 +72,19 @@ func isSafeName(name string) bool {
 	if digits > maxNameDigits || strings.Trim(name, "0123456789"+nameSeparators) == "" {
 		return false
 	}
+	maxCaps := maxCapsName
+	if strings.ContainsAny(name, nameSeparators) {
+		maxCaps = maxCapsWord
+	}
 	for word := range strings.FieldsFuncSeq(name, func(r rune) bool { return strings.ContainsRune(nameSeparators, r) }) {
-		if !isSafeWord(word) {
+		if !isSafeWord(word, maxCaps) {
 			return false
 		}
 	}
 	return true
 }
 
-func isSafeWord(word string) bool {
+func isSafeWord(word string, maxCaps int) bool {
 	upper, lower, capitals, badDigit := 0, 0, 0, false
 	for i := 0; i < len(word); {
 		start := i
@@ -108,7 +113,7 @@ func isSafeWord(word string) bool {
 	case badDigit:
 		return false
 	case lower == 0:
-		return upper <= maxCapsWord && (len(word) <= maxShortWord || upper == len(word))
+		return upper <= maxCaps && (len(word) <= maxShortWord || upper == len(word))
 	default:
 		return capitals*2 <= lower+1
 	}

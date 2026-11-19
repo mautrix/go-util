@@ -17,8 +17,9 @@ import (
 // XML returns the distinct paths of an XML document's elements and attributes,
 // e.g. "msg/appmsg/title" or "msg/img@aeskey", down to maxDepth elements from
 // the root, at most 32. Namespaces are ignored. A document that fails to parse
-// returns what was read before the error followed by "invalid", as does input
-// with no elements.
+// returns the elements that were closed before the error and the elements
+// containing them, followed by "invalid", so that text with stray angle
+// brackets doesn't list its words. Input with no elements is "invalid" too.
 func XML(data []byte, maxDepth int) []string {
 	if len(bytes.TrimSpace(data)) == 0 {
 		return nil
@@ -31,7 +32,8 @@ func XML(data []byte, maxDepth int) []string {
 	maxDepth = clampDepth(maxDepth)
 	var set nameSet
 	var path []string
-	unsafeDepth := 0
+	var pending [][]string
+	confirmed, unsafeDepth := 0, 0
 	sawElement := false
 	var err error
 	for {
@@ -44,6 +46,7 @@ func XML(data []byte, maxDepth int) []string {
 		case xml.StartElement:
 			sawElement = true
 			path = append(path, tok.Name.Local)
+			pending = append(pending, nil)
 			if unsafeDepth > 0 || len(path) > maxDepth {
 				continue
 			}
@@ -53,23 +56,32 @@ func XML(data []byte, maxDepth int) []string {
 				continue
 			}
 			elementPath := strings.Join(path, "/")
-			set.add(elementPath)
+			names := []string{elementPath}
 			for _, attr := range tok.Attr {
 				if attr.Name.Space == "xmlns" || (attr.Name.Space == "" && attr.Name.Local == "xmlns") {
 					continue
 				} else if isSafeName(attr.Name.Local) {
-					set.add(elementPath + "@" + attr.Name.Local)
+					names = append(names, elementPath+"@"+attr.Name.Local)
 				} else {
 					set.addOther(elementPath + "@" + attr.Name.Local)
 				}
 			}
+			pending[len(pending)-1] = names
 		case xml.EndElement:
+			if len(path) == 0 {
+				continue
+			}
+			for _, names := range pending[confirmed:] {
+				for _, name := range names {
+					set.add(name)
+				}
+			}
 			if len(path) == unsafeDepth {
 				unsafeDepth = 0
 			}
-			if len(path) > 0 {
-				path = path[:len(path)-1]
-			}
+			path = path[:len(path)-1]
+			pending = pending[:len(pending)-1]
+			confirmed = len(pending)
 		}
 	}
 	out := set.result()

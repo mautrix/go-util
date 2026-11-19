@@ -78,8 +78,9 @@ func ProtoUnknownFields(msg proto.Message) []int32 {
 // :x and its hex when it's a single non-printable byte, :id for a 16-64
 // character token, :url for text containing a URL, :txt for other printable
 // text, or its own shape in braces when it parses as a message. Text with tabs
-// or line breaks that also parses as a message is described as one, but without
-// any varint or byte values. Wire data that doesn't parse as a message is
+// or line breaks is :txt too, unless it parses as a message with only field 1,
+// which is the most common wrapper; that is described without varint or byte
+// values, though its lengths still come from the text. Wire data that doesn't parse as a message is
 // described as a bytes value, so a single top-level byte is shown too. At most
 // 32 fields are described per message and 8 messages deep, and output over 2048
 // bytes is cut off.
@@ -88,7 +89,7 @@ func Protowire(data []byte) string {
 		return ""
 	}
 	var sb strings.Builder
-	if isToken(data) || isText(data, false) || !isWellFormedProto(data) {
+	if isToken(data) || isText(data, false) || !isWellFormedProto(data) || (isText(data, true) && !onlyFieldOne(data)) {
 		sb.WriteByte('b')
 		sb.WriteString(strconv.Itoa(len(data)))
 		writeProtoBytes(&sb, data, maxProtoDepth, false)
@@ -175,7 +176,7 @@ func writeProtoBytes(sb *strings.Builder, value []byte, depth int, hideValues bo
 		sb.WriteString(":url")
 	case isText(value, false):
 		sb.WriteString(":txt")
-	case depth < maxProtoDepth && isWellFormedProto(value):
+	case depth < maxProtoDepth && isWellFormedProto(value) && (!isText(value, true) || onlyFieldOne(value)):
 		writeProtoMessage(sb, value, depth+1, hideValues || isText(value, true))
 	case isText(value, true):
 		sb.WriteString(":txt")
@@ -202,6 +203,17 @@ func isText(value []byte, allowWhitespace bool) bool {
 		if (r < 0x20 && !(allowWhitespace && (r == '\t' || r == '\n' || r == '\r'))) || r == 0x7f {
 			return false
 		}
+	}
+	return true
+}
+
+func onlyFieldOne(value []byte) bool {
+	for len(value) > 0 {
+		num, _, n := protowire.ConsumeField(value)
+		if n < 0 || num != 1 {
+			return false
+		}
+		value = value[n:]
 	}
 	return true
 }
