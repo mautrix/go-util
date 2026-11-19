@@ -18,9 +18,9 @@ import (
 // e.g. "msg/appmsg/title" or "msg/img@aeskey", down to maxDepth elements from
 // the root, at most 32. Namespaces are ignored. A document that fails to parse
 // returns the elements that were closed before the error and the elements
-// containing them, followed by "invalid". Input with no elements or with text
-// outside every element, such as a message with stray angle brackets, is just
-// "invalid".
+// containing them, followed by "invalid", as does one with more than one root
+// element. Input with no elements or with text outside every element, such as
+// a message with stray angle brackets, is just "invalid".
 func XML(data []byte, maxDepth int) []string {
 	if len(bytes.TrimSpace(data)) == 0 {
 		return nil
@@ -37,6 +37,7 @@ func XML(data []byte, maxDepth int) []string {
 	confirmed, unsafeDepth := 0, 0
 	sawElement := false
 	var err error
+tokens:
 	for {
 		var tok xml.Token
 		tok, err = dec.Token()
@@ -45,6 +46,10 @@ func XML(data []byte, maxDepth int) []string {
 		}
 		switch tok := tok.(type) {
 		case xml.StartElement:
+			if len(path) == 0 && sawElement {
+				err = errMultipleRoots
+				break tokens
+			}
 			sawElement = true
 			path = append(path, tok.Name.Local)
 			pending = append(pending, xmlNames{})
@@ -98,6 +103,8 @@ func XML(data []byte, maxDepth int) []string {
 	}
 	return out
 }
+
+var errMultipleRoots = errors.New("multiple root elements")
 
 type xmlNames struct {
 	names []string
