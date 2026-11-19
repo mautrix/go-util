@@ -17,7 +17,8 @@ import (
 // XML returns the distinct paths of an XML document's elements and attributes,
 // e.g. "msg/appmsg/title" or "msg/img@aeskey", down to maxDepth elements from
 // the root. Namespaces are ignored. A document that fails to parse returns what
-// was read before the error followed by "invalid".
+// was read before the error followed by "invalid", as does input with no
+// elements.
 func XML(data []byte, maxDepth int) []string {
 	if len(bytes.TrimSpace(data)) == 0 {
 		return nil
@@ -31,6 +32,7 @@ func XML(data []byte, maxDepth int) []string {
 	var set nameSet
 	var path []string
 	unsafeDepth := 0
+	sawElement := false
 	var err error
 	for {
 		var tok xml.Token
@@ -40,6 +42,7 @@ func XML(data []byte, maxDepth int) []string {
 		}
 		switch tok := tok.(type) {
 		case xml.StartElement:
+			sawElement = true
 			path = append(path, tok.Name.Local)
 			if unsafeDepth > 0 || len(path) > maxDepth {
 				continue
@@ -70,7 +73,7 @@ func XML(data []byte, maxDepth int) []string {
 		}
 	}
 	out := set.result()
-	if !errors.Is(err, io.EOF) {
+	if !errors.Is(err, io.EOF) || !sawElement {
 		out = append(out, "invalid")
 	}
 	return out

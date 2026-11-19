@@ -42,8 +42,8 @@ func ProtoFields(msg proto.Message) []int32 {
 	return fields
 }
 
-// ProtoUnknownFields returns the sorted, distinct numbers of the fields on a
-// message that its descriptor doesn't know.
+// ProtoUnknownFields returns the lowest 64 distinct numbers of the fields on a
+// message that its descriptor doesn't know, sorted.
 func ProtoUnknownFields(msg proto.Message) []int32 {
 	if msg == nil {
 		return nil
@@ -64,17 +64,22 @@ func ProtoUnknownFields(msg proto.Message) []int32 {
 		fields = append(fields, int32(num))
 	}
 	slices.Sort(fields)
-	return slices.Compact(fields)
+	fields = slices.Compact(fields)
+	if len(fields) > maxNames {
+		fields = fields[:maxNames]
+	}
+	return fields
 }
 
 // Protowire describes raw protobuf wire data without a schema, e.g.
 // "{1:v=3,2:b16:id,4:b12{1:f64,2:v}}". Each field is its number and wire type:
 // v for varints, with the value when it's at most 255, f32 and f64 for fixed
-// values, and b plus the length for bytes. A bytes field is followed by
-// :x and its hex for a single non-printable byte, :id for a 16-64 character
-// token, :url for text containing a URL, :txt for other printable text, or its
-// own shape in braces when it parses as a message. Wire data that doesn't parse
-// as a message is described as a bytes value. At most 32 fields are described
+// values, and b plus the length for bytes. A bytes value is followed by
+// :x and its hex when it's a single non-printable byte, :id for a 16-64
+// character token, :url for text containing a URL, :txt for other printable
+// text, or its own shape in braces when it parses as a message. Wire data that
+// doesn't parse as a message is described as a bytes value, so a single
+// top-level byte is shown too. At most 32 fields are described
 // per message and 8 messages deep, and output over 2048 bytes is cut off.
 func Protowire(data []byte) string {
 	if len(data) == 0 {
@@ -188,7 +193,7 @@ func isPrintable(value []byte) bool {
 		return false
 	}
 	for _, r := range string(value) {
-		if r < 0x20 || r == 0x7f {
+		if (r < 0x20 && r != '\t' && r != '\n' && r != '\r') || r == 0x7f {
 			return false
 		}
 	}
