@@ -6,12 +6,6 @@
 
 // Package l10n contains the localizable message type used for user-facing
 // strings that bridges and other services send to clients.
-//
-// A Message always carries fully rendered English text, so clients that don't
-// localize can display it as-is. When the message was rendered from a
-// Template, it also carries the template key and the parameters that were
-// substituted into it, which lets a client look up its own translation of the
-// key and render it with the same parameters.
 package l10n
 
 import (
@@ -24,7 +18,7 @@ import (
 )
 
 // Params are the values substituted into a template. Values must be strings or
-// integers; Template.Render normalizes integers to int64.
+// integers. All integer types are normalized to int64 when rendering.
 type Params map[string]any
 
 // Message is a user-facing string.
