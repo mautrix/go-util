@@ -192,8 +192,8 @@ func Keys[M ~map[K]V, K ~string, V any](m M) []string {
 // e.g. "https://example.com/l/{22}?lang&uuid". Path segments, query keys, host
 // labels and schemes that don't look like schema names are replaced by their
 // length in braces, as are the opaque part and the fragment. IP addresses
-// become "{ip}" and user info becomes "{userinfo}". At most 64 path segments
-// and 64 query keys are described.
+// become "{ip}" and user info becomes "{userinfo}". At most 64 host labels, 64
+// path segments and 64 query keys are described.
 func URL(raw string) string {
 	if raw == "" {
 		return ""
@@ -226,12 +226,17 @@ func URL(raw string) string {
 			sb.WriteString(port)
 		}
 	}
+	described := 0
 	for i, segment := range strings.Split(parsed.EscapedPath(), "/") {
-		if i > maxNames {
-			sb.WriteString("/...")
-			break
-		} else if i > 0 {
+		if i > 0 {
 			sb.WriteByte('/')
+		}
+		if i > 0 || segment != "" {
+			if described >= maxNames {
+				sb.WriteString("...")
+				break
+			}
+			described++
 		}
 		decoded, err := url.PathUnescape(segment)
 		if err != nil {
@@ -281,6 +286,10 @@ func writeHost(sb *strings.Builder, host string) {
 	for i, label := range labels {
 		if i > 0 {
 			sb.WriteByte('.')
+		}
+		if i >= maxNames {
+			sb.WriteString("...")
+			break
 		}
 		if isSafeName(label) {
 			sb.WriteString(label)

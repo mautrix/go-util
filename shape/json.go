@@ -19,8 +19,9 @@ import (
 // kind, e.g. "content.body:string" or "attachments[].size:number". Keys are
 // joined with '.', array elements are "[]" and the kinds are string, number,
 // bool, null, object and array. Objects and arrays are only listed by kind when
-// they're empty or nested deeper than maxDepth; a maxDepth of 1 describes the
-// top-level keys only, and depths over 32 are treated as 32. A document that
+// they're empty, nested deeper than maxDepth or have keys that aren't listed; a
+// maxDepth of 1 describes the top-level keys only, and depths over 32 are
+// treated as 32. A document that
 // fails to parse or has data after its first value returns what was read
 // before the error followed by "invalid".
 //
@@ -32,7 +33,7 @@ func JSON(data []byte, maxDepth int) []string {
 	}
 	walker := jsonWalker{
 		dec: jsontext.NewDecoder(
-			bytes.NewReader(data),
+			bytes.NewReader(bytes.TrimPrefix(data, []byte("\ufeff"))),
 			jsontext.AllowDuplicateNames(true),
 			jsontext.AllowInvalidUTF8(true),
 		),
@@ -100,6 +101,7 @@ func (w *jsonWalker) value(path string, depth int) error {
 				key := keyTok.String()
 				childPath += key
 				if !isSafeName(key) {
+					w.leaf(path, "object")
 					w.set.addOther(childPath)
 					if err = w.dec.SkipValue(); err != nil {
 						return err
