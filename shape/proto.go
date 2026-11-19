@@ -77,29 +77,31 @@ func ProtoUnknownFields(msg proto.Message) []int32 {
 // values, and b plus the length for bytes. A bytes value is followed by
 // :x and its hex when it's a single non-printable byte, :id for a 16-64
 // character token, :url for text containing a URL, :txt for other printable
-// text, or its own shape in braces when it parses as a message. Wire data that
-// doesn't parse as a message is described as a bytes value, so a single
-// top-level byte is shown too. At most 32 fields are described
-// per message and 8 messages deep, and output over 2048 bytes is cut off.
+// text, or its own shape in braces when it parses as a message. Text with tabs
+// or line breaks that also parses as a message is described as one, but without
+// any varint or byte values. Wire data that doesn't parse as a message is
+// described as a bytes value, so a single top-level byte is shown too. At most
+// 32 fields are described per message and 8 messages deep, and output over 2048
+// bytes is cut off.
 func Protowire(data []byte) string {
 	if len(data) == 0 {
 		return ""
 	}
 	var sb strings.Builder
-	if isToken(data) || isPrintable(data) || !isWellFormedProto(data) {
+	if isToken(data) || isText(data, false) || !isWellFormedProto(data) {
 		sb.WriteByte('b')
 		sb.WriteString(strconv.Itoa(len(data)))
-		writeProtoBytes(&sb, data, maxProtoDepth)
+		writeProtoBytes(&sb, data, maxProtoDepth, false)
 		return sb.String()
 	}
-	writeProtoMessage(&sb, data, 0)
+	writeProtoMessage(&sb, data, 0, isText(data, true))
 	if sb.Len() > maxProtoLen {
 		return sb.String()[:maxProtoLen] + "..."
 	}
 	return sb.String()
 }
 
-func writeProtoMessage(sb *strings.Builder, data []byte, depth int) {
+func writeProtoMessage(sb *strings.Builder, data []byte, depth int, hideValues bool) {
 	sb.WriteByte('{')
 	defer sb.WriteByte('}')
 	for fields := 0; len(data) > 0; fields++ {
@@ -123,7 +125,7 @@ func writeProtoMessage(sb *strings.Builder, data []byte, depth int) {
 			value, n = protowire.ConsumeVarint(data)
 			if n >= 0 {
 				sb.WriteByte('v')
-				if value <= maxProtoVarint {
+				if value <= maxProtoVarint && !hideValues {
 					sb.WriteByte('=')
 					sb.WriteString(strconv.FormatUint(value, 10))
 				}
@@ -144,7 +146,7 @@ func writeProtoMessage(sb *strings.Builder, data []byte, depth int) {
 			if n >= 0 {
 				sb.WriteByte('b')
 				sb.WriteString(strconv.Itoa(len(value)))
-				writeProtoBytes(sb, value, depth)
+				writeProtoBytes(sb, value, depth, hideValues)
 			}
 		default:
 			sb.WriteString("wt")
@@ -159,20 +161,24 @@ func writeProtoMessage(sb *strings.Builder, data []byte, depth int) {
 	}
 }
 
-func writeProtoBytes(sb *strings.Builder, value []byte, depth int) {
+func writeProtoBytes(sb *strings.Builder, value []byte, depth int, hideValues bool) {
 	switch {
 	case len(value) == 0:
 	case len(value) == 1 && (value[0] < 0x20 || value[0] >= 0x7f):
-		sb.WriteString(":x")
-		sb.WriteString(hex.EncodeToString(value))
+		if !hideValues {
+			sb.WriteString(":x")
+			sb.WriteString(hex.EncodeToString(value))
+		}
 	case isToken(value):
 		sb.WriteString(":id")
 	case bytes.Contains(value, []byte("https://")) || bytes.Contains(value, []byte("http://")):
 		sb.WriteString(":url")
-	case isPrintable(value):
+	case isText(value, false):
 		sb.WriteString(":txt")
 	case depth < maxProtoDepth && isWellFormedProto(value):
-		writeProtoMessage(sb, value, depth+1)
+		writeProtoMessage(sb, value, depth+1, hideValues || isText(value, true))
+	case isText(value, true):
+		sb.WriteString(":txt")
 	}
 }
 
@@ -188,12 +194,12 @@ func isToken(value []byte) bool {
 	return true
 }
 
-func isPrintable(value []byte) bool {
+func isText(value []byte, allowWhitespace bool) bool {
 	if !utf8.Valid(value) {
 		return false
 	}
 	for _, r := range string(value) {
-		if (r < 0x20 && r != '\t' && r != '\n' && r != '\r') || r == 0x7f {
+		if (r < 0x20 && !(allowWhitespace && (r == '\t' || r == '\n' || r == '\r'))) || r == 0x7f {
 			return false
 		}
 	}

@@ -18,13 +18,14 @@ import (
 // joined with '.', array elements are "[]" and the kinds are string, number,
 // bool, null, object and array. Objects and arrays are only listed by kind when
 // they're empty or nested deeper than maxDepth; a maxDepth of 1 describes the
-// top-level keys only. A document that fails to parse or has data after its
-// first value returns what was read before the error followed by "invalid".
+// top-level keys only, and depths over 32 are treated as 32. A document that
+// fails to parse or has data after its first value returns what was read
+// before the error followed by "invalid".
 func JSON(data []byte, maxDepth int) []string {
 	if len(bytes.TrimSpace(data)) == 0 {
 		return nil
 	}
-	walker := jsonWalker{dec: json.NewDecoder(bytes.NewReader(data)), maxDepth: max(maxDepth, 1)}
+	walker := jsonWalker{dec: json.NewDecoder(bytes.NewReader(data)), maxDepth: clampDepth(maxDepth)}
 	walker.dec.UseNumber()
 	err := walker.value("", 1)
 	if err == nil {

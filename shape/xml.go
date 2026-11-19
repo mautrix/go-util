@@ -16,9 +16,9 @@ import (
 
 // XML returns the distinct paths of an XML document's elements and attributes,
 // e.g. "msg/appmsg/title" or "msg/img@aeskey", down to maxDepth elements from
-// the root. Namespaces are ignored. A document that fails to parse returns what
-// was read before the error followed by "invalid", as does input with no
-// elements.
+// the root, at most 32. Namespaces are ignored. A document that fails to parse
+// returns what was read before the error followed by "invalid", as does input
+// with no elements.
 func XML(data []byte, maxDepth int) []string {
 	if len(bytes.TrimSpace(data)) == 0 {
 		return nil
@@ -28,7 +28,7 @@ func XML(data []byte, maxDepth int) []string {
 	dec.CharsetReader = func(_ string, input io.Reader) (io.Reader, error) {
 		return input, nil
 	}
-	maxDepth = max(maxDepth, 1)
+	maxDepth = clampDepth(maxDepth)
 	var set nameSet
 	var path []string
 	unsafeDepth := 0
