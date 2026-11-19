@@ -74,16 +74,16 @@ func ProtoUnknownFields(msg proto.Message) []int32 {
 // Protowire describes raw protobuf wire data without a schema, e.g.
 // "{1:v=3,2:b16:id,4:b12{1:f64,2:v}}". Each field is its number and wire type:
 // v for varints, with the value when it's at most 255, f32 and f64 for fixed
-// values, and b plus the length for bytes. A bytes value is followed by
-// :x and its hex when it's a single non-printable byte, :id for a 16-64
-// character token, :url for text containing a URL, :txt for other printable
-// text, or its own shape in braces when it parses as a message. Text with tabs
-// or line breaks is :txt too, unless it parses as a message with only field 1,
-// which is the most common wrapper; that is described without varint or byte
-// values, though its lengths still come from the text. Wire data that doesn't parse as a message is
-// described as a bytes value, so a single top-level byte is shown too. At most
-// 32 fields are described per message and 8 messages deep, and output over 2048
-// bytes is cut off.
+// values, and b plus the length for bytes. A bytes value is followed by :x and
+// its hex when it's a single non-printable byte, :id for a 16-64 character
+// token, :url for text containing a URL, :txt for other printable text, or its
+// own shape in braces when it parses as a message. Text with tabs or line
+// breaks is :txt too, unless it parses as a message with only field 1, which is
+// the most common wrapper; that is described without varint or byte values,
+// though its lengths still come from the text. Wire data that doesn't parse as
+// a message is described as a bytes value, so a single top-level byte is shown
+// too. At most 32 fields are described per message and 8 messages deep, and
+// output over 2048 bytes is cut off.
 func Protowire(data []byte) string {
 	if len(data) == 0 {
 		return ""

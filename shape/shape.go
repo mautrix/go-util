@@ -10,19 +10,18 @@
 // logged because it carries message content or credentials.
 //
 // A name is only listed when it looks like a schema name rather than data: at
-// most 64 ASCII letters, digits, '_', '-', '.' and '$', with at least one letter
-// and no more than four digits, and split on those separators into words that
-// read like identifiers.
-// In a camel case word, the capitals may be at most half its lowercase letters,
-// rounded up, with each run of capitals counting as at most two. A word in all
-// capitals may have at most 12 letters, or 8 when it's the whole name, and no
-// digits unless it's at most five characters long. A digit may only be followed by a capital that starts a new
-// word, except in short lowercase words like "e2ee". This rejects nearly all
-// random tokens over 16 characters, but short tokens, usernames and file names
-// can still pass, so it doesn't make it safe to describe payloads whose keys
-// are mostly user data. Rejected names, such as user IDs, phone numbers or
-// message IDs used as keys, are counted in a final "N other" entry and their
-// subtree is skipped.
+// most 64 ASCII letters, digits, '_', '-', '.' and '$', with at least one
+// letter and no more than four digits, and split on those separators into words
+// that read like identifiers. In a camel case word, the capitals may be at most
+// half its lowercase letters, rounded up, with each run of capitals counting as
+// at most two. A word in all capitals may have at most 12 letters, or 8 when
+// it's the whole name, and no digits unless it's at most five characters long.
+// A digit may only be followed by a capital that starts a new word, except in
+// short lowercase words like "e2ee". This rejects nearly all random tokens over
+// 16 characters, but short tokens, usernames and file names can still pass, so
+// it doesn't make it safe to describe payloads whose keys are mostly user data.
+// Rejected names, such as user IDs, phone numbers or message IDs used as keys,
+// are counted in a final "N other" entry and their subtree is skipped.
 //
 // Results are sorted and deduplicated, so equal shapes log identically. At most
 // the first 64 names in sorted order are listed and the rest are counted in "N

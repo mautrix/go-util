@@ -18,13 +18,14 @@ import (
 // e.g. "msg/appmsg/title" or "msg/img@aeskey", down to maxDepth elements from
 // the root, at most 32. Namespaces are ignored. A document that fails to parse
 // returns the elements that were closed before the error and the elements
-// containing them, followed by "invalid", so that text with stray angle
-// brackets doesn't list its words. Input with no elements is "invalid" too.
+// containing them, followed by "invalid". Input with no elements or with text
+// outside every element, such as a message with stray angle brackets, is just
+// "invalid".
 func XML(data []byte, maxDepth int) []string {
 	if len(bytes.TrimSpace(data)) == 0 {
 		return nil
 	}
-	dec := xml.NewDecoder(bytes.NewReader(data))
+	dec := xml.NewDecoder(bytes.NewReader(bytes.TrimPrefix(data, []byte("\ufeff"))))
 	dec.Entity = xml.HTMLEntity
 	dec.CharsetReader = func(_ string, input io.Reader) (io.Reader, error) {
 		return input, nil
@@ -32,7 +33,7 @@ func XML(data []byte, maxDepth int) []string {
 	maxDepth = clampDepth(maxDepth)
 	var set nameSet
 	var path []string
-	var pending [][]string
+	var pending []xmlNames
 	confirmed, unsafeDepth := 0, 0
 	sawElement := false
 	var err error
@@ -46,34 +47,41 @@ func XML(data []byte, maxDepth int) []string {
 		case xml.StartElement:
 			sawElement = true
 			path = append(path, tok.Name.Local)
-			pending = append(pending, nil)
+			pending = append(pending, xmlNames{})
 			if unsafeDepth > 0 || len(path) > maxDepth {
 				continue
 			}
+			frame := &pending[len(pending)-1]
+			elementPath := strings.Join(path, "/")
 			if !isSafeName(tok.Name.Local) {
 				unsafeDepth = len(path)
-				set.addOther(strings.Join(path, "/"))
+				frame.other = append(frame.other, elementPath)
 				continue
 			}
-			elementPath := strings.Join(path, "/")
-			names := []string{elementPath}
+			frame.names = append(frame.names, elementPath)
 			for _, attr := range tok.Attr {
 				if attr.Name.Space == "xmlns" || (attr.Name.Space == "" && attr.Name.Local == "xmlns") {
 					continue
 				} else if isSafeName(attr.Name.Local) {
-					names = append(names, elementPath+"@"+attr.Name.Local)
+					frame.names = append(frame.names, elementPath+"@"+attr.Name.Local)
 				} else {
-					set.addOther(elementPath + "@" + attr.Name.Local)
+					frame.other = append(frame.other, elementPath+"@"+attr.Name.Local)
 				}
 			}
-			pending[len(pending)-1] = names
+		case xml.CharData:
+			if len(path) == 0 && len(bytes.TrimSpace(tok)) > 0 {
+				return []string{"invalid"}
+			}
 		case xml.EndElement:
 			if len(path) == 0 {
 				continue
 			}
-			for _, names := range pending[confirmed:] {
-				for _, name := range names {
+			for _, frame := range pending[confirmed:] {
+				for _, name := range frame.names {
 					set.add(name)
+				}
+				for _, raw := range frame.other {
+					set.addOther(raw)
 				}
 			}
 			if len(path) == unsafeDepth {
@@ -89,4 +97,9 @@ func XML(data []byte, maxDepth int) []string {
 		out = append(out, "invalid")
 	}
 	return out
+}
+
+type xmlNames struct {
+	names []string
+	other []string
 }
