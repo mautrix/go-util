@@ -4,8 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// Package l10ntest checks that a project's committed translation catalog
-// matches the templates registered in code.
+// Package l10ntest checks committed translation catalogs against registered templates.
 package l10ntest
 
 import (
@@ -18,8 +17,7 @@ import (
 	"go.mau.fi/util/l10n"
 )
 
-// UpdateEnv is the environment variable that makes CheckCatalog rewrite the
-// catalog file instead of failing when it's stale.
+// UpdateEnv makes CheckCatalog rewrite the file instead of failing when set to 1.
 const UpdateEnv = "L10N_UPDATE"
 
 type CatalogFile struct {
@@ -28,10 +26,10 @@ type CatalogFile struct {
 }
 
 // GenerateCatalog returns the catalog file contents for a namespace.
-func GenerateCatalog(namespace string) ([]byte, error) {
+func GenerateCatalog(ns l10n.Namespace) ([]byte, error) {
 	data, err := json.MarshalIndent(&CatalogFile{
-		Namespace: namespace,
-		Messages:  l10n.Catalog(namespace),
+		Namespace: string(ns),
+		Messages:  l10n.Catalog(ns),
 	}, "", "\t")
 	if err != nil {
 		return nil, err
@@ -39,16 +37,11 @@ func GenerateCatalog(namespace string) ([]byte, error) {
 	return append(data, '\n'), nil
 }
 
-// CheckCatalog fails the test if the catalog file at path doesn't match the
-// templates registered for the namespace. Run the test with L10N_UPDATE=1 to
-// rewrite the file.
-//
-// The test must live in a package that (transitively) imports every package
-// defining templates in the namespace, otherwise those templates are missing
-// from the generated catalog.
-func CheckCatalog(t *testing.T, path, namespace string) {
+// CheckCatalog fails if the file at path doesn't match the namespace's templates.
+// The calling package must import every package that defines templates.
+func CheckCatalog(t *testing.T, path string, ns l10n.Namespace) {
 	t.Helper()
-	expected, err := GenerateCatalog(namespace)
+	expected, err := GenerateCatalog(ns)
 	if err != nil {
 		t.Fatalf("failed to generate catalog: %v", err)
 	}

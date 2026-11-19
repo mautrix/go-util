@@ -86,7 +86,7 @@ func TestJSON(t *testing.T) {
 }
 
 func TestCatalog(t *testing.T) {
-	entries := l10n.Catalog("l10n-test")
+	entries := l10n.Catalog(testNS)
 	require.Len(t, entries, 4)
 	assert.Equal(t, l10n.CatalogEntry{
 		Key:     "l10n-test:params",

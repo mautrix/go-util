@@ -23,18 +23,15 @@ type Params map[string]any
 
 // Message is a user-facing string.
 type Message struct {
-	// Key identifies the template this message was rendered from, in the form
-	// "<namespace>:<id>". Empty means the message is not localizable.
+	// Key is "<namespace>:<id>", or empty if the message isn't localizable.
 	Key string `json:"key,omitempty"`
-	// Text is the fully rendered English text. It is always safe to display.
+	// Text is the rendered English text.
 	Text string `json:"text"`
-	// Params are the values that were substituted into the template to produce
-	// Text. Clients need them to render a translation of Key.
+	// Params are the values used to render Text.
 	Params Params `json:"params,omitempty"`
 }
 
-// Unlocalized wraps text that can't be localized, such as strings coming from
-// the remote network.
+// Unlocalized wraps text that has no template, e.g. from a remote network.
 func Unlocalized(text string) Message {
 	return Message{Text: text}
 }
@@ -58,9 +55,7 @@ func (m Message) MarshalZerologObject(e *zerolog.Event) {
 	}
 }
 
-// UnmarshalJSON accepts both the object form and a bare JSON string. A bare
-// string becomes an unlocalized message, which is how text from older bridges
-// and older events is read.
+// UnmarshalJSON also accepts a bare string, which becomes an unlocalized message.
 func (m *Message) UnmarshalJSON(data []byte) error {
 	data = bytes.TrimSpace(data)
 	if len(data) > 0 && data[0] == '"' {

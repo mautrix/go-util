@@ -25,40 +25,22 @@ var (
 
 var (
 	registryLock sync.Mutex
-	namespaces   = map[string]*Namespace{}
 	templates    = map[string]*Template{}
 )
 
-// Namespace groups the templates of one project, e.g. "bridgev2" or
-// "mautrix-whatsapp". Keys only need to be unique within their namespace.
-type Namespace struct {
-	name string
-}
+// Namespace is the key prefix for one project's templates, e.g. "mautrix-whatsapp".
+type Namespace string
 
-// NewNamespace returns the namespace with the given name. Calling it again with
-// the same name returns the same namespace, so multiple packages in one
-// project can share it.
-func NewNamespace(name string) *Namespace {
+// NewNamespace validates the name and returns it as a Namespace.
+func NewNamespace(name string) Namespace {
 	if !namespacePattern.MatchString(name) {
 		panic(fmt.Errorf("l10n: invalid namespace %q", name))
 	}
-	registryLock.Lock()
-	defer registryLock.Unlock()
-	ns, ok := namespaces[name]
-	if !ok {
-		ns = &Namespace{name: name}
-		namespaces[name] = ns
-	}
-	return ns
+	return Namespace(name)
 }
 
-func (ns *Namespace) Name() string {
-	return ns.name
-}
-
-// Template is a registered English message with named {placeholders}.
-// Templates must be declared as package-level variables so that they are
-// registered at init time and included in the catalog.
+// Template is an English message with {name} placeholders. Declare templates as
+// package-level variables so they're registered before the catalog is generated.
 type Template struct {
 	key         string
 	english     string
@@ -70,26 +52,22 @@ type Template struct {
 
 type Option func(*Template)
 
-// WithComment attaches a note for translators to the template.
+// WithComment adds a note for translators.
 func WithComment(comment string) Option {
 	return func(t *Template) {
 		t.comment = comment
 	}
 }
 
-// Define registers a template. The English text may contain {name}
-// placeholders; every placeholder becomes a required parameter of Render.
-// Define panics if the key is already registered.
-func (ns *Namespace) Define(id, english string, opts ...Option) *Template {
+// Define registers a template. It panics if the key is already registered.
+func (ns Namespace) Define(id, english string, opts ...Option) *Template {
 	t := &Template{english: english}
 	t.params = placeholders(english)
 	return ns.register(id, t, opts)
 }
 
-// DefinePlural registers a template whose English text depends on the integer
-// parameter countParam: one is used when it's exactly 1, other otherwise.
-// Clients use countParam to select the plural form in their own language.
-func (ns *Namespace) DefinePlural(id, countParam, one, other string, opts ...Option) *Template {
+// DefinePlural registers a template that uses one when countParam is 1 and other otherwise.
+func (ns Namespace) DefinePlural(id, countParam, one, other string, opts ...Option) *Template {
 	t := &Template{english: other, englishOne: one, pluralParam: countParam}
 	t.params = placeholders(one, other)
 	if !slices.Contains(t.params, countParam) {
@@ -99,11 +77,11 @@ func (ns *Namespace) DefinePlural(id, countParam, one, other string, opts ...Opt
 	return ns.register(id, t, opts)
 }
 
-func (ns *Namespace) register(id string, t *Template, opts []Option) *Template {
+func (ns Namespace) register(id string, t *Template, opts []Option) *Template {
 	if !idPattern.MatchString(id) {
-		panic(fmt.Errorf("l10n: invalid template ID %q in namespace %s", id, ns.name))
+		panic(fmt.Errorf("l10n: invalid template ID %q in namespace %s", id, ns))
 	}
-	t.key = ns.name + ":" + id
+	t.key = string(ns) + ":" + id
 	for _, opt := range opts {
 		opt(t)
 	}
@@ -133,10 +111,9 @@ func (t *Template) Key() string {
 	return t.key
 }
 
-// RenderErrorHandler is called when a template is rendered with parameters that
-// don't match its placeholders. Rendering still produces readable text, but the
-// resulting message is unlocalized. The default handler panics inside tests and
-// logs a warning otherwise.
+// RenderErrorHandler is called when Render gets params that don't match the
+// template. The rendered message is then unlocalized. The default panics in
+// tests and logs otherwise.
 var RenderErrorHandler = func(t *Template, err error) {
 	if testing.Testing() {
 		panic(err)
@@ -144,14 +121,12 @@ var RenderErrorHandler = func(t *Template, err error) {
 	log.Warn().Err(err).Str("l10n_key", t.key).Msg("Failed to render localizable message")
 }
 
-// Message returns the message for a template without parameters.
+// Message renders a template that has no params.
 func (t *Template) Message() Message {
 	return t.Render(nil)
 }
 
-// Render substitutes params into the English text and returns a localizable
-// message. params must contain exactly the template's placeholders, with
-// string or integer values.
+// Render fills in the template's placeholders. Values must be strings or integers.
 func (t *Template) Render(params Params) Message {
 	normalized, err := t.normalizeParams(params)
 	english := t.english
@@ -227,24 +202,22 @@ func (t *Template) normalizeParams(params Params) (Params, error) {
 	return normalized, nil
 }
 
-// CatalogEntry describes one template for translation tooling.
+// CatalogEntry is one template in a translation catalog.
 type CatalogEntry struct {
 	Key string `json:"key"`
-	// English is the English text, or the "other" plural form for plural templates.
-	English string `json:"english"`
-	// EnglishOne is the "one" plural form. Only set for plural templates.
+	// English is the "other" form for plural templates.
+	English     string   `json:"english"`
 	EnglishOne  string   `json:"english_one,omitempty"`
 	PluralParam string   `json:"plural_param,omitempty"`
 	Params      []string `json:"params,omitempty"`
 	Comment     string   `json:"comment,omitempty"`
 }
 
-// Catalog returns every registered template in the namespace, sorted by key.
-// Only templates in packages linked into the current binary are included.
-func Catalog(namespace string) []CatalogEntry {
+// Catalog returns the namespace's registered templates sorted by key.
+func Catalog(ns Namespace) []CatalogEntry {
 	registryLock.Lock()
 	defer registryLock.Unlock()
-	prefix := namespace + ":"
+	prefix := string(ns) + ":"
 	var entries []CatalogEntry
 	for key, t := range templates {
 		if !strings.HasPrefix(key, prefix) {
