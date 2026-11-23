@@ -211,9 +211,17 @@ type CatalogEntry struct {
 
 // Catalog returns the namespace's registered templates sorted by key.
 func Catalog(ns Namespace) []CatalogEntry {
+	return catalog(string(ns) + ":")
+}
+
+// CatalogAll returns every registered template sorted by key.
+func CatalogAll() []CatalogEntry {
+	return catalog("")
+}
+
+func catalog(prefix string) []CatalogEntry {
 	registryLock.Lock()
 	defer registryLock.Unlock()
-	prefix := string(ns) + ":"
 	var entries []CatalogEntry
 	for key, t := range templates {
 		if !strings.HasPrefix(key, prefix) {

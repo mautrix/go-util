@@ -23,6 +23,7 @@ var (
 	tplParams       = testNS.Define("params", "Logged in as {name} on {device}", l10n.WithComment("name is a phone number"))
 	tplPlural       = testNS.DefinePlural("plural", "count", "You have one device", "You have {count} devices")
 	tplPluralNoBody = testNS.DefinePlural("plural_no_body", "n", "Item", "Items")
+	_               = l10n.NewNamespace("l10n-test-other").Define("a", "A")
 )
 
 func TestRender(t *testing.T) {
@@ -118,4 +119,16 @@ func TestCatalog(t *testing.T) {
 		PluralParam: "count",
 		Params:      []string{"count"},
 	}, entries[1])
+}
+
+func TestCatalogAll(t *testing.T) {
+	all := l10n.CatalogAll()
+	keys := make([]string, len(all))
+	for i, entry := range all {
+		keys[i] = entry.Key
+	}
+	assert.Contains(t, keys, "l10n-test:simple")
+	assert.Contains(t, keys, "l10n-test-other:a")
+	assert.IsIncreasing(t, keys)
+	assert.Len(t, l10n.Catalog(testNS), 4)
 }
