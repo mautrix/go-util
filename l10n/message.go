@@ -17,8 +17,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// Params are the values substituted into a template. Values must be strings or
-// integers. All integer types are normalized to int64 when rendering.
+// Params are the values substituted into a template. Values must be strings,
+// integers or Messages. All integer types are normalized to int64 when rendering.
 type Params map[string]any
 
 // Message is a user-facing string.
@@ -92,14 +92,18 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 
 func parseParamValue(raw json.RawMessage) (any, error) {
 	raw = bytes.TrimSpace(raw)
-	if len(raw) > 0 && raw[0] == '"' {
+	if len(raw) > 0 && raw[0] == '{' {
+		var msg Message
+		err := json.Unmarshal(raw, &msg)
+		return msg, err
+	} else if len(raw) > 0 && raw[0] == '"' {
 		var str string
 		err := json.Unmarshal(raw, &str)
 		return str, err
 	}
 	val, err := strconv.ParseInt(string(raw), 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("must be a string or an integer")
+		return nil, fmt.Errorf("must be a string, an integer or a message")
 	}
 	return val, nil
 }
