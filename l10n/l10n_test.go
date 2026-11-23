@@ -70,6 +70,20 @@ func TestRenderNested(t *testing.T) {
 	assert.Equal(t, msg, parsed)
 }
 
+func TestUnmarshalNestingLimit(t *testing.T) {
+	nested := func(depth int) string {
+		data := `{"text":"x"}`
+		for range depth {
+			data = `{"text":"x","params":{"p":` + data + `}}`
+		}
+		return data
+	}
+	var msg l10n.Message
+	require.NoError(t, json.Unmarshal([]byte(nested(8)), &msg))
+	assert.Error(t, json.Unmarshal([]byte(nested(9)), &msg))
+	require.NoError(t, json.Unmarshal([]byte(`{"text":"{{{{{{{{{{{{{{{{{{{{\\\"{{{{"}`), &msg))
+}
+
 func TestRenderInvalidParams(t *testing.T) {
 	orig := l10n.RenderErrorHandler
 	defer func() { l10n.RenderErrorHandler = orig }()
