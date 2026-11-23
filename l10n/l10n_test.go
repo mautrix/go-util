@@ -119,3 +119,17 @@ func TestCatalog(t *testing.T) {
 		Params:      []string{"count"},
 	}, entries[1])
 }
+
+func TestCatalogAll(t *testing.T) {
+	other := l10n.NewNamespace("l10n-test-other")
+	other.Define("a", "A")
+	all := l10n.CatalogAll()
+	keys := make([]string, len(all))
+	for i, entry := range all {
+		keys[i] = entry.Key
+	}
+	assert.Contains(t, keys, "l10n-test:simple")
+	assert.Contains(t, keys, "l10n-test-other:a")
+	assert.IsIncreasing(t, keys)
+	assert.Len(t, l10n.Catalog(testNS), 4)
+}
