@@ -17,8 +17,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// Params are the values substituted into a template. Values must be strings or
-// integers. All integer types are normalized to int64 when rendering.
+// Params are the values substituted into a template. Values must be strings,
+// integers or Messages. All integer types are normalized to int64 when rendering.
 type Params map[string]any
 
 // Message is a user-facing string.
@@ -68,6 +68,9 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 	} else if bytes.Equal(data, []byte("null")) {
 		return nil
 	}
+	if jsonObjectDepth(data) > maxObjectDepth {
+		return fmt.Errorf("message params are nested more than %d levels deep", maxNestingDepth)
+	}
 	var raw struct {
 		Key    string                     `json:"key"`
 		Text   string                     `json:"text"`
@@ -90,16 +93,45 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+const maxNestingDepth = 8
+
+// Each nested message adds two objects: the params map and the message itself.
+const maxObjectDepth = 1 + 2*maxNestingDepth
+
+func jsonObjectDepth(data []byte) int {
+	var depth, maxDepth int
+	inString := false
+	for i := 0; i < len(data); i++ {
+		switch c := data[i]; {
+		case inString && c == '\\':
+			i++
+		case c == '"':
+			inString = !inString
+		case inString:
+		case c == '{':
+			depth++
+			maxDepth = max(maxDepth, depth)
+		case c == '}':
+			depth--
+		}
+	}
+	return maxDepth
+}
+
 func parseParamValue(raw json.RawMessage) (any, error) {
 	raw = bytes.TrimSpace(raw)
-	if len(raw) > 0 && raw[0] == '"' {
+	if len(raw) > 0 && raw[0] == '{' {
+		var msg Message
+		err := json.Unmarshal(raw, &msg)
+		return msg, err
+	} else if len(raw) > 0 && raw[0] == '"' {
 		var str string
 		err := json.Unmarshal(raw, &str)
 		return str, err
 	}
 	val, err := strconv.ParseInt(string(raw), 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("must be a string or an integer")
+		return nil, fmt.Errorf("must be a string, an integer or a message")
 	}
 	return val, nil
 }

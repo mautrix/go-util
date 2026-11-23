@@ -127,7 +127,7 @@ func (t *Template) Message() Message {
 	return t.Render(nil)
 }
 
-// Render fills in the template's placeholders. Values must be strings or integers.
+// Render fills in the template's placeholders. Values must be strings, integers or Messages.
 func (t *Template) Render(params Params) Message {
 	normalized, err := t.normalizeParams(params)
 	english := t.english
@@ -160,6 +160,13 @@ func (t *Template) normalizeParams(params Params) (Params, error) {
 	for name, val := range params {
 		if !slices.Contains(t.params, name) {
 			errs = append(errs, fmt.Sprintf("unknown param %q", name))
+			continue
+		}
+		if msg, ok := val.(*Message); ok && msg != nil {
+			val = *msg
+		}
+		if msg, ok := val.(Message); ok {
+			normalized[name] = msg
 			continue
 		}
 		rv := reflect.ValueOf(val)

@@ -50,6 +50,40 @@ func TestRenderNamedTypes(t *testing.T) {
 	assert.Equal(t, int64(2), tplPlural.Render(l10n.Params{"count": namedInt(2)}).Params["count"])
 }
 
+func TestRenderNested(t *testing.T) {
+	inner := tplSimple.Message()
+	msg := tplParams.Render(l10n.Params{"name": inner, "device": &inner})
+	assert.Equal(t, "Logged in as Scan the QR code on Scan the QR code", msg.Text)
+	assert.True(t, msg.IsLocalizable())
+	assert.Equal(t, inner, msg.Params["name"])
+	assert.Equal(t, inner, msg.Params["device"])
+
+	msg = tplParams.Render(l10n.Params{"name": l10n.Unlocalized("remote error"), "device": "x"})
+	assert.Equal(t, "Logged in as remote error on x", msg.Text)
+	assert.True(t, msg.IsLocalizable())
+
+	data, err := json.Marshal(msg)
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"key":"l10n-test:params","text":"Logged in as remote error on x","params":{"name":{"text":"remote error"},"device":"x"}}`, string(data))
+	var parsed l10n.Message
+	require.NoError(t, json.Unmarshal(data, &parsed))
+	assert.Equal(t, msg, parsed)
+}
+
+func TestUnmarshalNestingLimit(t *testing.T) {
+	nested := func(depth int) string {
+		data := `{"text":"x"}`
+		for range depth {
+			data = `{"text":"x","params":{"p":` + data + `}}`
+		}
+		return data
+	}
+	var msg l10n.Message
+	require.NoError(t, json.Unmarshal([]byte(nested(8)), &msg))
+	assert.Error(t, json.Unmarshal([]byte(nested(9)), &msg))
+	require.NoError(t, json.Unmarshal([]byte(`{"text":"{{{{{{{{{{{{{{{{{{{{\\\"{{{{"}`), &msg))
+}
+
 func TestRenderInvalidParams(t *testing.T) {
 	orig := l10n.RenderErrorHandler
 	defer func() { l10n.RenderErrorHandler = orig }()
