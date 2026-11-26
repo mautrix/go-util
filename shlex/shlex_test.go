@@ -35,7 +35,8 @@ func TestClassifier(t *testing.T) {
 		' ':  spaceRuneClass,
 		'"':  escapingQuoteRuneClass,
 		'\'': nonEscapingQuoteRuneClass,
-		'#':  commentRuneClass}
+		'#':  commentRuneClass,
+	}
 	for runeChar, want := range tests {
 		got := classifier.ClassifyRune(runeChar)
 		if got != want {

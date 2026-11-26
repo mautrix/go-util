@@ -59,7 +59,7 @@ func TestGetTokenPrefix(t *testing.T) {
 }
 
 func TestGetTokenPrefix_Static(t *testing.T) {
-	var tokens = []string{
+	tokens := []string{
 		"meow_FXfcJomwUu9hVqmxiEqq_wZsw02",
 		"meow_54aDbVIVDO4fQkB80uAkoXpnISggmVDVrV_0yIw64",
 	}
@@ -69,7 +69,7 @@ func TestGetTokenPrefix_Static(t *testing.T) {
 }
 
 func TestGetTokenPrefix_Invalid(t *testing.T) {
-	var tokens = []string{
+	tokens := []string{
 		"meow_FXfcJomwUu9hVqmxiEqq_wZsw12",
 		"meow_54aDbVIVDO4fQkB80uAkoXpnISggmVDVV_0yIw64",
 	}

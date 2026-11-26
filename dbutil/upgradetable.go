@@ -63,7 +63,7 @@ func (ut WIPUpgradeTable) With(upg Upgrade) WIPUpgradeTable {
 		return ut
 	} else if len(ut) < from {
 		ut = slices.Grow(ut, from+1)[:from+1]
-	} else if (ut)[from].fn != nil {
+	} else if ut[from].fn != nil {
 		panic(fmt.Errorf("dbutil: tried to override upgrade at %d (%q) with %q", from, ut[from].message, upg.message))
 	}
 	ut[from] = upg

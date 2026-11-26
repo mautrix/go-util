@@ -142,7 +142,7 @@ func ConvertBytes(ctx context.Context, data []byte, outputExtension string, inpu
 	defer os.RemoveAll(tempdir)
 	inputFileName := fmt.Sprintf("%s/input%s", tempdir, exmime.ExtensionFromMimetype(inputMime))
 
-	inputFile, err := os.OpenFile(inputFileName, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
+	inputFile, err := os.OpenFile(inputFileName, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open input file: %w", err)
 	}

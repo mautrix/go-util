@@ -5,9 +5,11 @@ import (
 	"strings"
 )
 
-var redundantStarRegex = regexp.MustCompile(`\*{2,}`)
-var maybeRedundantQuestionRegex = regexp.MustCompile(`[*?]{2,}`)
-var wildcardRegex = regexp.MustCompile(`[*?]+`)
+var (
+	redundantStarRegex          = regexp.MustCompile(`\*{2,}`)
+	maybeRedundantQuestionRegex = regexp.MustCompile(`[*?]{2,}`)
+	wildcardRegex               = regexp.MustCompile(`[*?]+`)
+)
 
 func SplitPattern(pattern string) []string {
 	indexes := wildcardRegex.FindAllStringIndex(pattern, -1)

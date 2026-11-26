@@ -29,10 +29,12 @@ func (u *Upgrade) DangerouslyRun(ctx context.Context, db *Database) (upgradesTo,
 	return u.upgradesTo, u.compatVersion, u.fn(ctx, db)
 }
 
-var ErrUnsupportedDatabaseVersion = errors.New("unsupported database schema version")
-var ErrForeignTables = errors.New("the database contains foreign tables")
-var ErrNotOwned = errors.New("the database is owned by")
-var ErrUnsupportedDialect = errors.New("unsupported database dialect")
+var (
+	ErrUnsupportedDatabaseVersion = errors.New("unsupported database schema version")
+	ErrForeignTables              = errors.New("the database contains foreign tables")
+	ErrNotOwned                   = errors.New("the database is owned by")
+	ErrUnsupportedDialect         = errors.New("unsupported database dialect")
+)
 
 type NotOwnedError struct {
 	Owner string

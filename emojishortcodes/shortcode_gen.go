@@ -46,7 +46,7 @@ func main() {
 	for _, emoji := range emojis {
 		output[variationselector.Add(unifiedToUnicode(emoji.Unified))] = emoji.ShortName
 	}
-	f := exerrors.Must(os.OpenFile("shortcodes.json", os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644))
+	f := exerrors.Must(os.OpenFile("shortcodes.json", os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0o644))
 	exerrors.PanicIfNotNil(json.NewEncoder(f).Encode(output))
 	_ = f.Close()
 }

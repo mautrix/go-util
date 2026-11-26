@@ -52,9 +52,11 @@ func (db *Database) QueryRow(ctx context.Context, query string, args ...any) *sq
 	return db.Execable(ctx).QueryRowContext(ctx, query, args...)
 }
 
-var ErrTransactionDeadlock = errors.New("attempt to start new transaction in goroutine with transaction")
-var ErrQueryDeadlock = errors.New("attempt to query without context in goroutine with transaction")
-var ErrAcquireDeadlock = errors.New("attempt to acquire connection without context in goroutine with transaction")
+var (
+	ErrTransactionDeadlock = errors.New("attempt to start new transaction in goroutine with transaction")
+	ErrQueryDeadlock       = errors.New("attempt to query without context in goroutine with transaction")
+	ErrAcquireDeadlock     = errors.New("attempt to acquire connection without context in goroutine with transaction")
+)
 
 func (db *Database) BeginTx(ctx context.Context, opts *TxnOptions) (*LoggingTxn, error) {
 	if ctx == nil {
