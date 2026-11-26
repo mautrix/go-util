@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
-	deflog "github.com/rs/zerolog/log"
+	deflog "github.com/rs/zerolog/log" // zerolog-allow-global-log
 )
 
 // SetupDefaults updates zerolog globals with sensible defaults.

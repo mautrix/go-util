@@ -15,7 +15,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/rs/zerolog/log"
+	badGlobalLog "github.com/rs/zerolog/log" // zerolog-allow-global-log
 )
 
 var (
@@ -119,7 +119,7 @@ var RenderErrorHandler = func(t *Template, err error) {
 	if testing.Testing() {
 		panic(err)
 	}
-	log.Warn().Err(err).Str("l10n_key", t.key).Msg("Failed to render localizable message")
+	badGlobalLog.Warn().Err(err).Str("l10n_key", t.key).Msg("Failed to render localizable message")
 }
 
 // Message renders a template that has no params.
